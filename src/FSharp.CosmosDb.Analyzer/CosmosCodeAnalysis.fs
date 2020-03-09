@@ -142,7 +142,7 @@ module CosmosCodeAnalysis =
     let rec findParameters =
         function
         | Parameters(parameters, range) ->
-            let sqlParameters =
+            let queryParams =
                 parameters
                 |> List.map (fun (name, range, func, funcRange, appRange) ->
                     { name = name.TrimStart('@')
@@ -150,7 +150,7 @@ module CosmosCodeAnalysis =
                       paramFunc = func
                       paramFuncRange = funcRange
                       applicationRange = appRange })
-            [ CosmosAnalyzerBlock.Parameters(sqlParameters, range) ]
+            [ CosmosAnalyzerBlock.Parameters(queryParams, range) ]
 
         | SynExpr.App(exprAtomic, isInfix, funcExpr, argExpr, range) ->
             [ yield! findParameters funcExpr
