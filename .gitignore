@@ -3,3 +3,5 @@ obj
 
 appsettings.*.json
 .ionide
+.fake
+build.fsx.lock
