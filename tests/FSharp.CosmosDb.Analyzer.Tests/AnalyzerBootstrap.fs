@@ -8,9 +8,7 @@ open FSharp.Analyzers.SDK
 
 let checker =
     FSharpChecker.Create
-        (projectCacheSize = 200, keepAllBackgroundResolutions = true, keepAssemblyContents = true,
-         ImplicitlyStartBackgroundWork = true)
-
+        (keepAllBackgroundResolutions = true, keepAssemblyContents = true, ImplicitlyStartBackgroundWork = true)
 
 let dumpOpts (opts: FSharpProjectOptions) =
     printfn "FSharpProjectOptions.OtherOptions ->"
@@ -32,7 +30,7 @@ let loadProject file =
                 else
                     i)
         // dumpOpts opts
-        return file, { opts with OtherOptions = newOO }
+        return file, opts
     }
     |> Async.RunSynchronously
 
@@ -43,7 +41,7 @@ let typeCheckFile (file, opts) =
 
     match checkAnswer with
     | FSharpCheckFileAnswer.Aborted ->
-        // printError "Checking of file %s aborted" file
+        printfn "Checking of file %s aborted because %A" file parseRes.Errors
         None
     | FSharpCheckFileAnswer.Succeeded(c) -> Some(file, text, parseRes, c)
 
@@ -87,18 +85,9 @@ let createContext (file, text: string, p: FSharpParseFileResults, c: FSharpCheck
         Some context
     | _ -> None
 
-
 let context proj =
     let path = Path.Combine(Environment.CurrentDirectory, proj) |> Path.GetFullPath
 
     loadProject path
     |> typeCheckFile
     |> Option.bind createContext
-
-
-let runProject proj (analyzers: Analyzer seq) =
-    context proj
-    |> Option.map (fun ctx ->
-        analyzers
-        |> Seq.collect (fun analyzer -> analyzer ctx)
-        |> Seq.toList)
