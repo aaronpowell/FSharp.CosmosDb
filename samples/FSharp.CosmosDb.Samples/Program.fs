@@ -39,6 +39,14 @@ type Family =
       Children: Child array
       Address: Address }
 
+let getFamilies host key =
+    Cosmos.host host
+    |> Cosmos.connect key
+    |> Cosmos.database "FamilyDatabaseA"
+    |> Cosmos.container "FamilyContainerB"
+    |> Cosmos.query "SELECT * FROM f"
+    |> Cosmos.execAsync<Family>
+
 [<EntryPoint>]
 let main argv =
     let environmentName = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
@@ -54,14 +62,7 @@ let main argv =
         let host = config.["CosmosConnection:Host"]
         let key = config.["CosmosConnection:Key"]
 
-        let families =
-            Cosmos.host host
-            |> Cosmos.connect key
-            |> Cosmos.database "FamilyDatabase"
-            |> Cosmos.container "FamilyContainer"
-            |> Cosmos.query "SELECT * FROM f"
-            |> Cosmos.parameters [ "name", box "Aaron" ]
-            |> Cosmos.execAsync<Family>
+        let families = getFamilies host key
 
         do! families |> AsyncSeq.iter (fun f -> printfn "%A" f)
 

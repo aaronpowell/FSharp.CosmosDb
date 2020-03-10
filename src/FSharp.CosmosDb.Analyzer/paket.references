@@ -1,3 +1,5 @@
 FSharp.Core
 FSharp.Analyzers.SDK
 FSharp.Compiler.Service
+Azure.Cosmos
+FSharp.Control.AsyncSeq

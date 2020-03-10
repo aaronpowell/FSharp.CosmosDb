@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AsyncSeqExt.fs" />
+    <Compile Include="..\shared\AsyncSeqExt.fs" />
     <Compile Include="Cosmos.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />

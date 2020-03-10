@@ -4,6 +4,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Types.fs" />
+    <Compile Include="../shared/AsyncSeqExt.fs" />
+    <Compile Include="Messaging.fs" />
+    <Compile Include="CosmosCodeAnalyzer.fs" />
     <Compile Include="CosmosCodeAnalysis.fs" />
     <Compile Include="Analyzer.fs" />
   </ItemGroup>
