@@ -26,8 +26,7 @@ let cosmosDbAnalyzer: Analyzer =
             else
                 match CosmosCodeAnalyzer.testConnection host key with
                 | Error msg ->
-                    [ for block in syntaxBlocks ->
-                        Messaging.error msg block.range ]
+                    [ for block in syntaxBlocks -> Messaging.error msg block.range ]
                 | Success client ->
                     syntaxBlocks
                     |> List.collect (fun block ->
@@ -40,5 +39,8 @@ let cosmosDbAnalyzer: Analyzer =
                                      CosmosCodeAnalyzer.analyzeContainerNameOperation dbId containerName range client
                                  | None -> [])
 
-                        | None -> [])
+                        | None ->
+                            match CosmosCodeAnalyzer.findParameters block with
+                            | Some(parameters, range) -> CosmosCodeAnalyzer.analyzeParameters block parameters range
+                            | None -> [])
                     |> List.distinctBy (fun msg -> msg.Range)

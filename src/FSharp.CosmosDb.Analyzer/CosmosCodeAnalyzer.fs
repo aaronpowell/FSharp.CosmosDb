@@ -6,6 +6,7 @@ open FSharp.Control
 open FSharp.Analyzers.SDK
 open System.Net.Http
 open System
+open System.Text.RegularExpressions
 
 type ConnectionResult =
     | Error of string
@@ -101,3 +102,63 @@ module CosmosCodeAnalyzer =
                 return [ Messaging.error "Fatal error talking to Cosmos DB" range ]
         }
         |> Async.RunSynchronously
+
+    let findParameters (operation: CosmosOperation) =
+        operation.blocks
+        |> List.tryFind (function
+            | CosmosAnalyzerBlock.Parameters(_) -> true
+            | _ -> false)
+        |> Option.map (function
+            | CosmosAnalyzerBlock.Parameters(parameters, range) -> (parameters, range)
+            | _ -> failwith "No parameter operation")
+
+    let findQuery (operation: CosmosOperation) =
+        operation.blocks
+        |> List.tryFind (function
+            | CosmosAnalyzerBlock.Query(_) -> true
+            | _ -> false)
+        |> Option.map (function
+            | CosmosAnalyzerBlock.Query(query, range) -> (query, range)
+            | _ -> failwith "No query operation")
+
+    let analyzeParameters operation (parameters: UsedParameter list) (parametersRange: range) =
+        match findQuery operation with
+        | Some (query, queryRange) ->
+            let paramsInQuery =
+                Regex.Matches(query, "(\\w+)")
+                |> Seq.cast<Match>
+                |> Seq.map (fun m ->
+                    m.Groups
+                    |> Seq.cast<Group>
+                    |> Seq.skip 1
+                    |> Seq.map (fun g -> g.Value))
+                |> Seq.collect id
+                |> Seq.distinct
+                |> Set.ofSeq
+
+            let missingParams =
+                paramsInQuery
+                |> Set.difference
+                    (parameters
+                     |> List.map (fun p -> p.name)
+                     |> Set.ofList)
+                |> Set.toList
+                |> List.map
+                    (fun p -> Messaging.warning (sprintf "The parameter '%s' is defined but not provided" p) queryRange)
+
+            let excessiveParams =
+                parameters
+                |> List.map (fun p -> p.name)
+                |> Set.ofList
+                |> Set.difference paramsInQuery
+                |> Set.toList
+                |> List.map (fun p ->
+                    let up = parameters |> List.find (fun upp -> upp.name = p)
+                    Messaging.warning (sprintf "The parameter '%s' is defined but not used in the query" p) up.range)
+
+            [ yield! missingParams
+              yield! excessiveParams ]
+
+        | None ->
+            parameters
+            |> List.map (fun p -> Messaging.warning (sprintf "The parameter '%s' is defined but not used in the query" p.name) p.range)
