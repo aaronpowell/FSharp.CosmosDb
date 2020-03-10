@@ -123,9 +123,9 @@ module CosmosCodeAnalyzer =
 
     let analyzeParameters operation (parameters: UsedParameter list) (parametersRange: range) =
         match findQuery operation with
-        | Some (query, queryRange) ->
+        | Some(query, queryRange) ->
             let paramsInQuery =
-                Regex.Matches(query, "(\\w+)")
+                Regex.Matches(query, "@(\\w+)")
                 |> Seq.cast<Match>
                 |> Seq.map (fun m ->
                     m.Groups
@@ -144,7 +144,8 @@ module CosmosCodeAnalyzer =
                      |> Set.ofList)
                 |> Set.toList
                 |> List.map
-                    (fun p -> Messaging.warning (sprintf "The parameter '%s' is defined but not provided" p) queryRange)
+                    (fun p ->
+                        Messaging.warning (sprintf "The parameter '%s' is defined but not provided" p) queryRange)
 
             let excessiveParams =
                 parameters
@@ -161,4 +162,7 @@ module CosmosCodeAnalyzer =
 
         | None ->
             parameters
-            |> List.map (fun p -> Messaging.warning (sprintf "The parameter '%s' is defined but not used in the query" p.name) p.range)
+            |> List.map
+                (fun p ->
+                    Messaging.warning (sprintf "The parameter '%s' is defined but not used in the query" p.name)
+                        p.range)
