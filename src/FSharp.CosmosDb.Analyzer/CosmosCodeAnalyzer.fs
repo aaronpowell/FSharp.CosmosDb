@@ -55,7 +55,7 @@ module CosmosCodeAnalyzer =
                            |> List.map (fun prop ->
                                { FromRange = range
                                  FromText = databaseId
-                                 ToText = prop.Id })
+                                 ToText = sprintf "\"%s\"" prop.Id })
 
                        [ { msg with Fixes = fixes } ]
         }
@@ -89,7 +89,7 @@ module CosmosCodeAnalyzer =
                                |> List.map (fun prop ->
                                    { FromRange = range
                                      FromText = containerName
-                                     ToText = prop.Id })
+                                     ToText = sprintf "\"%s\"" prop.Id })
 
                            [ { msg with Fixes = fixes } ]
             with
