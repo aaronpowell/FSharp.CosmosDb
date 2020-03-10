@@ -21,7 +21,12 @@ module CosmosCodeAnalyzer =
             |> Async.RunSynchronously
             |> ignore
             Success client
-        with :? HttpRequestException -> Error "Could not establish Cosmos DB connection."
+        with
+        | :? AggregateException as ex when ex.InnerExceptions |> Seq.exists (fun e -> e :? HttpRequestException) ->
+            Error "Could not establish Cosmos DB connection."
+        | ex ->
+            printfn "%A" ex
+            Error "Something unknown happened when trying to access Cosmos DB"
 
     let findDatabaseOperation (operation: CosmosOperation) =
         operation.blocks
