@@ -38,6 +38,11 @@ let cosmosDbAnalyzer: Analyzer =
                                  | Some(containerName, range) ->
                                      CosmosCodeAnalyzer.analyzeContainerNameOperation dbId containerName range client
                                  | None -> [])
+                            |> List.append
+                                (match CosmosCodeAnalyzer.findParameters block with
+                                 | Some(parameters, range) ->
+                                     CosmosCodeAnalyzer.analyzeParameters block parameters range
+                                 | None -> [])
 
                         | None ->
                             match CosmosCodeAnalyzer.findParameters block with

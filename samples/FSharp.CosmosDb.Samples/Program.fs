@@ -45,6 +45,8 @@ let getFamilies host key =
     |> Cosmos.database "FamilyDatabaseA"
     |> Cosmos.container "FamilyContainerB"
     |> Cosmos.query "SELECT * FROM f"
+    |> Cosmos.query "SELECT * FROM f WHERE f.Name = @name"
+    |> Cosmos.parameters [ "age", box 35 ]
     |> Cosmos.execAsync<Family>
 
 [<EntryPoint>]
