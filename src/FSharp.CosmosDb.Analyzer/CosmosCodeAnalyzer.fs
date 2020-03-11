@@ -145,7 +145,8 @@ module CosmosCodeAnalyzer =
                 |> Set.toList
                 |> List.map
                     (fun p ->
-                        Messaging.warning (sprintf "The parameter '%s' is defined but not provided" p) queryRange)
+                        let up = parameters |> List.find (fun upp -> upp.name = p)
+                        Messaging.warning (sprintf "The parameter '%s' is defined but not used in the query" p) up.range)
 
             let excessiveParams =
                 parameters
@@ -154,8 +155,7 @@ module CosmosCodeAnalyzer =
                 |> Set.difference paramsInQuery
                 |> Set.toList
                 |> List.map (fun p ->
-                    let up = parameters |> List.find (fun upp -> upp.name = p)
-                    Messaging.warning (sprintf "The parameter '%s' is defined but not used in the query" p) up.range)
+                        Messaging.warning (sprintf "The parameter '%s' is defined but not provided" p) queryRange)
 
             [ yield! missingParams
               yield! excessiveParams ]
