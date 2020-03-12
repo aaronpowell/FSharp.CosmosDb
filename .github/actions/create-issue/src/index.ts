@@ -8,7 +8,7 @@ async function run() {
   const octokit = new github.GitHub(token);
   const context = github.context;
 
-  const changelog = fs.readFileSync("./nupkg/changelog.md", {
+  const changelog = fs.readFileSync("./.nupkg/changelog.md", {
     encoding: "UTF8"
   });
 
