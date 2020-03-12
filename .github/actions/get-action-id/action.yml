@@ -1,0 +1,13 @@
+name: "Get Action ID"
+description: "Get's the GH Action ID from an issue"
+inputs:
+  token:
+    description: "GitHub access token"
+    required: true
+    default: ""
+outputs:
+  id:
+    description: "id of the action"
+runs:
+  using: "node12"
+  main: "dist/index.js"

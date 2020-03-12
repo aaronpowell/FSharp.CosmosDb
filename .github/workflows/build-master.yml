@@ -30,6 +30,9 @@ jobs:
       - name: Set Version
         run: dotnet fake run ./build.fsx --target SetVersionForCI
 
+      - name: Create version file
+        run: echo ${{ env.package_version }} >> ${{ env.OUTPUT_PATH }}/version.txt
+
       - name: Publish release packages
         uses: actions/upload-artifact@v1
         with:
@@ -50,3 +53,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           action-id: ${{ github.run_id }}
+          package-version: ${{ env.package_version }}

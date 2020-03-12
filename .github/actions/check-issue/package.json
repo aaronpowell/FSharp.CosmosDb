@@ -1,0 +1,20 @@
+{
+  "name": "check-issue",
+  "version": "1.0.0",
+  "description": "CHecks if an issue was actually a release issue",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "Aaron Powell",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.2.3",
+    "@actions/github": "^2.1.1"
+  },
+  "devDependencies": {
+    "typescript": "^3.8.3"
+  }
+}
