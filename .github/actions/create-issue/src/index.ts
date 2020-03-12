@@ -30,11 +30,11 @@ ${changelog}
 
   await octokit.issues.createComment({
     ...context.repo,
-    issue_number: newIssue.data.id,
+    issue_number: newIssue.data.number,
     body: `Action: ${core.getInput("action-id")}`
   });
 
-  core.setOutput("issue-id", newIssue.data.id.toString());
+  core.setOutput("issue-id", newIssue.data.number.toString());
 }
 
 run();
