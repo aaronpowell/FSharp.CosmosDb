@@ -31,6 +31,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           label: release-candidate
 
+      - name: Debugger
+        run: echo ${{ steps.check-issue.exists }}
+
       - name: Building Action
         run: npm i && npm run build
         if: steps.check-issue.exists == 'true'
