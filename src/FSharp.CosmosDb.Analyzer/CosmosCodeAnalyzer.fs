@@ -136,26 +136,57 @@ module CosmosCodeAnalyzer =
                 |> Seq.distinct
                 |> Set.ofSeq
 
-            let missingParams =
+            let suppliedButNotUsed =
                 paramsInQuery
                 |> Set.difference
                     (parameters
                      |> List.map (fun p -> p.name)
                      |> Set.ofList)
                 |> Set.toList
-                |> List.map
-                    (fun p ->
-                        let up = parameters |> List.find (fun upp -> upp.name = p)
-                        Messaging.warning (sprintf "The parameter '%s' is defined but not used in the query" p) up.range)
 
-            let excessiveParams =
+            let usedByNotSupplied =
                 parameters
                 |> List.map (fun p -> p.name)
                 |> Set.ofList
                 |> Set.difference paramsInQuery
                 |> Set.toList
+
+            let excessiveParams =
+                suppliedButNotUsed
                 |> List.map (fun p ->
-                        Messaging.warning (sprintf "The parameter '%s' is defined but not provided" p) queryRange)
+                    let up = parameters |> List.find (fun upp -> upp.name = p)
+                    let msg =
+                        Messaging.warning (sprintf "The parameter '%s' is defined but not used in the query" p)
+                            up.range
+                    { msg with
+                          Fixes =
+                              paramsInQuery
+                              |> Set.toList
+                              |> List.map (fun piq ->
+                                  { FromRange = up.range
+                                    FromText = p
+                                    ToText = sprintf "\"%s\"" piq }) })
+
+            let missingParams =
+                usedByNotSupplied
+                |> List.map (fun p ->
+                    let paramWithSym = sprintf "@%s" p
+                    let paramPosInQuery = query.IndexOf paramWithSym
+                    let paramRangeInQuery =
+                        mkRange paramWithSym
+                            (mkPos queryRange.StartLine (queryRange.StartColumn + paramPosInQuery + 1))
+                            (mkPos queryRange.EndLine
+                                 (queryRange.StartColumn + paramPosInQuery + paramWithSym.Length + 1))
+                    let msg =
+                        Messaging.warning (sprintf "The parameter '%s' is defined but not provided" p)
+                            paramRangeInQuery
+                    { msg with
+                          Fixes =
+                              parameters
+                              |> List.map (fun up ->
+                                  { FromRange = paramRangeInQuery
+                                    FromText = paramWithSym
+                                    ToText = sprintf "@%s" up.name }) })
 
             [ yield! missingParams
               yield! excessiveParams ]
