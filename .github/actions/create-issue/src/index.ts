@@ -14,7 +14,7 @@ async function run() {
 
   const newIssue = await octokit.issues.create({
     ...context.repo,
-    labels: [`Action: ${core.getInput("action-id")}`],
+    labels: [`awaiting-review`, "release-candidate"],
     title: `Release ${core.getInput("package-version")} ready for review`,
     body: `# :rocket: Release ${core.getInput(
       "package-version"
@@ -26,6 +26,12 @@ async function run() {
 
 ${changelog}
     `
+  });
+
+  await octokit.issues.createComment({
+    ...context.repo,
+    issue_number: newIssue.data.id,
+    body: `Action: ${core.getInput("action-id")}`
   });
 
   core.setOutput("issue-id", newIssue.data.id.toString());
