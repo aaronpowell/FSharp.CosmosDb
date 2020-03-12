@@ -1,6 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageOutputPath>../../.nupkg</PackageOutputPath>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/aaronpowell/FSharp.CosmosDb.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <Title>FSharp.CosmosDb</Title>
+    <PackageDescription>FSharp.CosmosDb is a package that wraps around the CosmosDb .NET SDK to make it friendlier for F# developers.</PackageDescription>
+    <Authors>aaron.powell</Authors>
+    <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\shared\AsyncSeqExt.fs" />

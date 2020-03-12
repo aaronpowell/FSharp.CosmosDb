@@ -5,3 +5,4 @@ appsettings.*.json
 .ionide
 .fake
 build.fsx.lock
+.nupkg

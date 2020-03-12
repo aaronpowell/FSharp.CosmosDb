@@ -1,0 +1,34 @@
+name: Build release candidate
+
+env:
+  OUTPUT_PATH: ${{ github.workspace }}/.nupkg
+  DOTNET_VERSION: "3.1.100"
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Setup Dotnet ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dotnet tools
+        run: dotnet tool restore
+
+      - name: Generate packages
+        run: dotnet fake run ./build.fsx --target Release
+
+      - name: Publish release packages
+        uses: actions/upload-artifact@v1
+        with:
+          name: packages
+          path: ${{ env.OUTPUT_PATH }}
