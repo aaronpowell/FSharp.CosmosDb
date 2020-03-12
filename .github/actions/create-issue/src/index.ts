@@ -14,7 +14,7 @@ async function run() {
 
   const newIssue = await octokit.issues.create({
     ...context.repo,
-    labels: [`Action: ${core.getInput("action-id")}`],
+    labels: [`Action: ${core.getInput("GITHUB_ACTION")}`],
     title: `Release ${core.getInput("package-version")} ready for review`,
     body: `# :rocket: Release ${core.getInput(
       "package-version"
