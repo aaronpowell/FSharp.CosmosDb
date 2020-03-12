@@ -14,15 +14,16 @@ async function run() {
 
   const newIssue = await octokit.issues.create({
     ...context.repo,
-    title: core.getInput("title"),
-    body: `
-      # :rocket: Release ${core.getInput("package-version")} ready for review
+    title: `Release ${core.getInput("package_version")} ready for review`,
+    body: `# :rocket: Release ${core.getInput(
+      "package-version"
+    )} ready for review
 
-      ## Changelog
+## Changelog
 
-      ---
+---
 
-      ${changelog}
+${changelog}
     `
   });
 

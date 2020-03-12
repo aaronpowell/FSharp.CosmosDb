@@ -49,4 +49,3 @@ jobs:
         uses: ./.github/actions/create-issue
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          title: Release $package_version ready for review
