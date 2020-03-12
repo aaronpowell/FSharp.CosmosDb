@@ -27,8 +27,17 @@ jobs:
       - name: Generate packages
         run: dotnet fake run ./build.fsx --target Release
 
+      - name: Set Version
+        run: dotnet fake run ./build.fsx --target SetVersionForCI
+
       - name: Publish release packages
         uses: actions/upload-artifact@v1
         with:
           name: packages
           path: ${{ env.OUTPUT_PATH }}
+
+      - name: Create Release Issue
+        uses: ./github/actions/create-issue
+        with:
+          token: ${{ env.GITHUB_TOKEN }}
+          title: Release $package_version ready for review

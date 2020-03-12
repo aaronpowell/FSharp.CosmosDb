@@ -77,11 +77,14 @@ Target.create "Changelog" (fun _ ->
 
     [| sprintf "%O" changelog |] |> File.append "./.nupkg/changelog.md")
 
+Target.create "SetVersionForCI" (fun _ ->
+    let changelog = getChangelog()
+    printfn "::set-env name=package_version::%s" changelog.NuGetVersion)
+
 Target.create "All" ignore
 Target.create "Release" ignore
 
 "Clean" ==> "Restore" ==> "Build" ==> "All"
-
 "Clean" ==> "Restore" ==> "Build" ==> "Publish" ==> "Package" ==> "Changelog" ==> "Release"
 
 Target.runOrDefault "All"

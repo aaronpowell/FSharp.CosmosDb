@@ -6,3 +6,5 @@ appsettings.*.json
 .fake
 build.fsx.lock
 .nupkg
+node_modules
+dist
