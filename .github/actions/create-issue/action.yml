@@ -5,6 +5,10 @@ inputs:
     description: "GitHub access token"
     required: true
     default: ""
+  action-id:
+    description: "GitHub Action ID"
+    required: true
+    default: ""
   title:
     description: "Title of the issue"
     required: true
