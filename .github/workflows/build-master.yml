@@ -36,6 +36,14 @@ jobs:
           name: packages
           path: ${{ env.OUTPUT_PATH }}
 
+      - name: Prepare create release issue action
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+
+      - name: Building Action
+        run: npm i && npm run build
+
       - name: Create Release Issue
         uses: ./.github/actions/create-issue
         with:
