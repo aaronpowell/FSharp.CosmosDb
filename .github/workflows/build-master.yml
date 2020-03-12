@@ -37,7 +37,7 @@ jobs:
           path: ${{ env.OUTPUT_PATH }}
 
       - name: Create Release Issue
-        uses: ./github/actions/create-issue
+        uses: ./.github/actions/create-issue
         with:
           token: ${{ env.GITHUB_TOKEN }}
           title: Release $package_version ready for review
