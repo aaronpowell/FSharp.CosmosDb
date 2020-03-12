@@ -48,5 +48,5 @@ jobs:
       - name: Create Release Issue
         uses: ./.github/actions/create-issue
         with:
-          token: ${{ env.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           title: Release $package_version ready for review
