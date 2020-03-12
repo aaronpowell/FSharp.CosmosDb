@@ -31,9 +31,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           label: release-candidate
 
-      - name: Debugger
-        run: echo ${{ steps.check-issue.outputs.exists }}
-
       - name: Building Action
         run: npm i && npm run build
         if: steps.check-issue.outputs.exists == 'true'
@@ -48,13 +45,21 @@ jobs:
 
       - name: Download packages
         if: steps.check-issue.outputs.exists == 'true'
+        working-directory: ${{ env.OUTPUT_PATH }}
         run: |
-          echo ${{ steps.get-action-id.id }}
+          echo ${{ steps.get-action-id.outputs.id }}
+          curl https://api.github.com/repos/aaronpowell/FSharp.CosmosDb/actions/runs/${{ steps.get-action-id.outputs.id }}/artifacts --output artifacts.json
+          downloadUrl=$(cat artifacts.json | jq -c '.artifacts[] | select(.name == "packages") | .archive_download_url')
+          echo $downloadUrl
+          curl $downloadUrl --output packages.zip
+          unzip packages.zip
+          ls
 
       - name: Get release version
         if: steps.check-issue.outputs.exists == 'true'
+        working-directory: ${{ env.OUTPUT_PATH }}
         run: |
-          version=(cat ${{ env.OUTPUT_PATH }}/version.txt)
+          version=(cat version.txt)
           echo "::set-env name=package_version::$version"
       # - name: Setup Dotnet ${{ env.DOTNET_VERSION }}
       #   uses: actions/setup-dotnet@v1
