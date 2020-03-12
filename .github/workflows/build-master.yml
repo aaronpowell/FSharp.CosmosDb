@@ -43,6 +43,7 @@ jobs:
 
       - name: Building Action
         run: npm i && npm run build
+        working-directory: ./.github/actions/create-issue
 
       - name: Create Release Issue
         uses: ./.github/actions/create-issue
