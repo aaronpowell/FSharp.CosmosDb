@@ -49,4 +49,4 @@ jobs:
         uses: ./.github/actions/create-issue
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          action-id: ${{ env.GITHUB_ACTION }}
+          action-id: $GITHUB_ACTION
