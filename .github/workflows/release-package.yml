@@ -55,7 +55,7 @@ jobs:
         if: steps.check-issue.outputs.exists == 'true'
         working-directory: ${{ env.OUTPUT_PATH }}
         run: |
-          downloadUrl=$(cat artifacts.json | jq -c '.artifacts[] | select(.name == "packages") | .archive_download_url')
+          downloadUrl=$(cat artifacts.json | jq -c '.artifacts[] | select(.name == "packages") | .archive_download_url' | tr -d '"')
           echo $downloadUrl
           curl $downloadUrl --output packages.zip
 
