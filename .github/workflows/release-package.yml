@@ -39,7 +39,7 @@ jobs:
       - name: Get the ID of the Action
         uses: ./.github/actions/get-action-id
         if: steps.check-issue.outputs.exists == 'true'
-        id: action-id
+        id: get-action-id
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
