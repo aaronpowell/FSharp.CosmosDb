@@ -43,17 +43,26 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download packages
+      - name: Get artifact list
         if: steps.check-issue.outputs.exists == 'true'
-        working-directory: ${{ env.OUTPUT_PATH }}
         run: |
           echo ${{ steps.get-action-id.outputs.id }}
           mkdir ${{ env.OUTPUT_PATH }}
           cd ${{ env.OUTPUT_PATH }}
           curl https://api.github.com/repos/aaronpowell/FSharp.CosmosDb/actions/runs/${{ steps.get-action-id.outputs.id }}/artifacts --output artifacts.json
+
+      - name: Get download artifact
+        if: steps.check-issue.outputs.exists == 'true'
+        working-directory: ${{ env.OUTPUT_PATH }}
+        run: |
           downloadUrl=$(cat artifacts.json | jq -c '.artifacts[] | select(.name == "packages") | .archive_download_url')
           echo $downloadUrl
           curl $downloadUrl --output packages.zip
+
+      - name: Unpack artifact
+        if: steps.check-issue.outputs.exists == 'true'
+        working-directory: ${{ env.OUTPUT_PATH }}
+        run: |
           unzip packages.zip
           ls
 
