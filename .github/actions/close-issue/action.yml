@@ -1,0 +1,14 @@
+name: "Close Issue"
+description: "Closes an issue with a message"
+inputs:
+  token:
+    description: "GitHub access token"
+    required: true
+    default: ""
+  message:
+    description: "Message on closing"
+    required: true
+    default: "Issue has been closed automatically"
+runs:
+  using: "node12"
+  main: "dist/index.js"
