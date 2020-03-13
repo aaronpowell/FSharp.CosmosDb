@@ -43,26 +43,16 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get artifact list
+      - name: Download packages
         if: steps.check-issue.outputs.exists == 'true'
         run: |
           echo ${{ steps.get-action-id.outputs.id }}
           mkdir ${{ env.OUTPUT_PATH }}
           cd ${{ env.OUTPUT_PATH }}
           curl https://api.github.com/repos/aaronpowell/FSharp.CosmosDb/actions/runs/${{ steps.get-action-id.outputs.id }}/artifacts --output artifacts.json
-
-      - name: Get download artifact
-        if: steps.check-issue.outputs.exists == 'true'
-        working-directory: ${{ env.OUTPUT_PATH }}
-        run: |
           downloadUrl=$(cat artifacts.json | jq -c '.artifacts[] | select(.name == "packages") | .archive_download_url' | tr -d '"')
           echo $downloadUrl
           curl $downloadUrl --output packages.zip --user octocat:${{ secrets.GITHUB_TOKEN }} --verbose --location
-
-      - name: Unpack artifact
-        if: steps.check-issue.outputs.exists == 'true'
-        working-directory: ${{ env.OUTPUT_PATH }}
-        run: |
           unzip packages.zip
           ls
 
@@ -70,15 +60,39 @@ jobs:
         if: steps.check-issue.outputs.exists == 'true'
         working-directory: ${{ env.OUTPUT_PATH }}
         run: |
-          version=(cat version.txt)
+          version=$(cat version.txt)
           echo "::set-env name=package_version::$version"
-      # - name: Setup Dotnet ${{ env.DOTNET_VERSION }}
-      #   uses: actions/setup-dotnet@v1
-      #   if: steps.check-issue.outputs.exists == 'true'
-      #   with:
-      #     dotnet-version: ${{ env.DOTNET_VERSION }}
-      # - name: Push NuGet Package
-      #   if: steps.check-issue.outputs.exists == 'true'
-      #   run: |
-      #     dotnet nuget push FSharp.CosmosDb.${{ env.package_version }}.nupkg --key ${{ secrets.NUGET_KEY }}
-      #     dotnet nuget push FSharp.CosmosDb.Analyzer.${{ env.package_version }}.nupkg --key ${{ secrets.NUGET_KEY }}
+
+      - name: Setup Dotnet ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v1
+        if: steps.check-issue.outputs.exists == 'true'
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Push NuGet Package
+        if: steps.check-issue.outputs.exists == 'true'
+        run: |
+          dotnet nuget push FSharp.CosmosDb.${{ env.package_version }}.nupkg --key ${{ secrets.NUGET_KEY }}
+          dotnet nuget push FSharp.CosmosDb.Analyzer.${{ env.package_version }}.nupkg --key ${{ secrets.NUGET_KEY }}
+
+      - name: Get Action sha
+        if: steps.check-issue.outputs.exists == 'true'
+        run: |
+          echo ${{ steps.get-action-id.outputs.id }}
+          cd ${{ env.OUTPUT_PATH }}
+          curl https://api.github.com/repos/aaronpowell/FSharp.CosmosDb/actions/runs/${{ steps.get-action-id.outputs.id }} --output run.json
+          action_sha=$(cat run.json | jq -c '.head_sha' | tr -d '"')
+          echo "::set-env name=package_version::$action_sha"
+
+      - name: Building Action
+        run: npm i && npm run build
+        if: steps.check-issue.outputs.exists == 'true'
+        working-directory: ./.github/actions/github-release
+
+      - name: Cut GitHub Release
+        uses: ./.github/actions/github-release
+        if: steps.check-issue.outputs.exists == 'true'
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          sha: ${{ env.action_sha }}
+          version: ${{ env.package_version }}

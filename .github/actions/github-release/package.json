@@ -1,0 +1,22 @@
+{
+  "name": "github-release",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "Aaron Powell",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.2.3",
+    "@actions/github": "^2.1.1",
+    "mime": "^2.4.4"
+  },
+  "devDependencies": {
+    "@types/mime": "^2.0.1",
+    "typescript": "^3.8.3"
+  }
+}

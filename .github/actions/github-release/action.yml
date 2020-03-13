@@ -1,0 +1,16 @@
+name: "GitHub Release"
+description: "Creates the GitHub release and uploads assets"
+inputs:
+  token:
+    description: "GitHub access token"
+    required: true
+    default: ""
+  sha:
+    description: "Commit sha"
+    required: true
+  version:
+    description: "Version to release"
+    required: true
+runs:
+  using: "node12"
+  main: "dist/index.js"
