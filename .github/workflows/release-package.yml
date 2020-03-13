@@ -1,4 +1,4 @@
-name: Release package to NuGet
+name: Publish Release
 
 env:
   OUTPUT_PATH: ${{ github.workspace }}/.output
