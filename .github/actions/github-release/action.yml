@@ -11,6 +11,10 @@ inputs:
   version:
     description: "Version to release"
     required: true
+  path:
+    description: "Path for the artifacts"
+    required: true
+    default: ""
 runs:
   using: "node12"
   main: "dist/index.js"

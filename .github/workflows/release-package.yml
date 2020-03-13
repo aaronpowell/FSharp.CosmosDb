@@ -98,3 +98,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           sha: ${{ env.action_sha }}
           version: ${{ env.package_version }}
+          path: ${{ env.OUTPUT_PATH }}

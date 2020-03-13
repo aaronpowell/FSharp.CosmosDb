@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { lstatSync, readFileSync } from "fs";
 import { getType } from "mime";
-import { basename } from "path";
+import { basename, join } from "path";
 import { Context } from "@actions/github/lib/context";
 
 function mimeOrDefault(path: string) {
@@ -42,8 +42,11 @@ async function run() {
   const token = core.getInput("token");
   const sha = core.getInput("sha");
   const version = core.getInput("version");
+  const artifactPath = core.getInput("path");
 
-  const releaseNotes = readFileSync("changelog.md", { encoding: "UTF8" });
+  const releaseNotes = readFileSync(join(artifactPath, "changelog.md"), {
+    encoding: "UTF8"
+  });
 
   const octokit = new github.GitHub(token);
   const context = github.context;
@@ -60,13 +63,13 @@ async function run() {
     octokit,
     context,
     release.data.upload_url,
-    `FSharp.CosmosDb.${version}.nupkg`
+    join(artifactPath, `FSharp.CosmosDb.${version}.nupkg`)
   );
   await upload(
     octokit,
     context,
     release.data.upload_url,
-    `FSharp.CosmosDb.Analyzer.${version}.nupkg`
+    join(artifactPath, `FSharp.CosmosDb.Analyzer.${version}.nupkg`)
   );
 }
 
