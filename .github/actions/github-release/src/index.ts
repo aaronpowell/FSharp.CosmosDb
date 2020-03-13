@@ -1,9 +1,13 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { lstatSync, readFileSync } from "fs";
-import { mimeOrDefault } from "mime";
+import { getType } from "mime";
 import { basename } from "path";
 import { Context } from "@actions/github/lib/context";
+
+function mimeOrDefault(path: string) {
+  return getType(path) || "application/octet-stream";
+}
 
 function fileInfo(path: string) {
   return {
