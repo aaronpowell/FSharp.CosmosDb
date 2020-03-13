@@ -48,6 +48,8 @@ jobs:
         working-directory: ${{ env.OUTPUT_PATH }}
         run: |
           echo ${{ steps.get-action-id.outputs.id }}
+          mkdir ${{ env.OUTPUT_PATH }}
+          cd ${{ env.OUTPUT_PATH }}
           curl https://api.github.com/repos/aaronpowell/FSharp.CosmosDb/actions/runs/${{ steps.get-action-id.outputs.id }}/artifacts --output artifacts.json
           downloadUrl=$(cat artifacts.json | jq -c '.artifacts[] | select(.name == "packages") | .archive_download_url')
           echo $downloadUrl
