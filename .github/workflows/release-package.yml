@@ -72,8 +72,8 @@ jobs:
       - name: Push NuGet Package
         if: steps.check-issue.outputs.exists == 'true'
         run: |
-          dotnet nuget push FSharp.CosmosDb.${{ env.package_version }}.nupkg --key ${{ secrets.NUGET_KEY }}
-          dotnet nuget push FSharp.CosmosDb.Analyzer.${{ env.package_version }}.nupkg --key ${{ secrets.NUGET_KEY }}
+          dotnet nuget push FSharp.CosmosDb.${{ env.package_version }}.nupkg --api-key ${{ secrets.NUGET_KEY }}
+          dotnet nuget push FSharp.CosmosDb.Analyzer.${{ env.package_version }}.nupkg --api-key ${{ secrets.NUGET_KEY }}
 
       - name: Get Action sha
         if: steps.check-issue.outputs.exists == 'true'
