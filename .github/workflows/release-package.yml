@@ -84,7 +84,7 @@ jobs:
           cd ${{ env.OUTPUT_PATH }}
           curl https://api.github.com/repos/aaronpowell/FSharp.CosmosDb/actions/runs/${{ steps.get-action-id.outputs.id }} --output run.json
           action_sha=$(cat run.json | jq -c '.head_sha' | tr -d '"')
-          echo "::set-env name=package_version::$action_sha"
+          echo "::set-env name=action_sha::$action_sha"
 
       - name: Building Action
         run: npm i && npm run build
