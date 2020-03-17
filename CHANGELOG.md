@@ -1,5 +1,15 @@
 # Changelog for `FSharp.CosmosDb`
 
+## [0.2.0]
+
+### Added
+
+- Ability to create a connection from a connection string with `Cosmos.fromConnectionString`
+
+### Changed
+
+- Introduced a `maybe` computational expression to simplify option types
+
 ## [0.1.1] - 2020-03-13
 
 ### Changed

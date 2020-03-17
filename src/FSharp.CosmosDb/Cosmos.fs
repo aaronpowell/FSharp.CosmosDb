@@ -5,18 +5,44 @@ open FSharp.Control
 
 type CosmosOperation =
     { Options: CosmosClientOptions option
-      Endpoint: string
+      FromConnectionString: bool
+      Endpoint: string option
       AccessKey: string option
+      ConnectionString: string option
       DatabaseId: string option
       ContainerName: string option
       Query: string option
       Parameters: (string * obj) list }
 
 module Cosmos =
+    let fromConnectionString connString =
+        { Options = None
+          FromConnectionString = true
+          Endpoint = None
+          AccessKey = None
+          ConnectionString = connString
+          DatabaseId = None
+          ContainerName = None
+          Query = None
+          Parameters = List.empty }
+
+    let fromConnectionStringWithOptions connString op =
+        { Options = Some op
+          FromConnectionString = true
+          Endpoint = None
+          AccessKey = None
+          ConnectionString = connString
+          DatabaseId = None
+          ContainerName = None
+          Query = None
+          Parameters = List.empty }
+
     let host endpoint =
         { Options = None
           Endpoint = endpoint
+          FromConnectionString = false
           AccessKey = None
+          ConnectionString = None
           DatabaseId = None
           ContainerName = None
           Query = None
@@ -43,24 +69,39 @@ module Cosmos =
             | Some op -> op
             | None -> CosmosClientOptions()
 
-        match op.AccessKey with
-        | Some connectionString ->
-            match op.DatabaseId with
-            | Some dbId ->
-                match op.ContainerName with
-                | Some cn ->
-                    match op.Query with
-                    | Some query ->
-                        let client = new CosmosClient(op.Endpoint, connectionString, clientOps)
-                        let db = client.GetDatabase dbId
-                        let container = db.GetContainer cn
-                        let qd = QueryDefinition query
-                        op.Parameters
-                        |> List.map (fun (key, value) -> qd.WithParameter(key, value))
-                        |> ignore
+        let client =
+            if op.FromConnectionString then
+                maybe {
+                    let! connStr = op.ConnectionString
+                    return new CosmosClient(connStr, clientOps) }
+            else
+                maybe {
+                    let! host = op.Endpoint
+                    let! accessKey = op.AccessKey
+                    return new CosmosClient(host, accessKey, clientOps) }
 
-                        container.GetItemQueryIterator<'T> qd |> AsyncSeq.ofAsyncEnum
-                    | None -> failwith "No query provided"
-                | None -> failwith "No container name provided"
-            | None -> failwith "No dabase id provided"
-        | None -> failwith "No access key provided"
+        match client with
+        | None -> failwith "No connection information provided"
+        | Some client ->
+            let result =
+                maybe {
+                    let! databaseId = op.DatabaseId
+                    let! containerName = op.ContainerName
+
+                    let db = client.GetDatabase databaseId
+                    let container = db.GetContainer containerName
+
+                    let! query = op.Query
+                    let qd =
+                        op.Parameters
+                        |> List.fold (fun (qd: QueryDefinition) (key, value) -> qd.WithParameter(key, value))
+                               (QueryDefinition query)
+
+                    return container.GetItemQueryIterator<'T> qd |> AsyncSeq.ofAsyncEnum
+                }
+
+            match result with
+            | Some result -> result
+            | None ->
+                failwith
+                    "Unable to construct a query as some values are missing across the database, container name and query"
