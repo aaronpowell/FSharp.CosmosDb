@@ -5,6 +5,7 @@ open Fake.DotNet
 open Fake.IO
 open Fake.IO.Globbing.Operators
 open Fake.Core.TargetOperators
+open Fake.DotNet.Testing
 
 Target.initEnvironment()
 
@@ -81,10 +82,12 @@ Target.create "SetVersionForCI" (fun _ ->
     let changelog = getChangelog()
     printfn "::set-env name=package_version::%s" changelog.NuGetVersion)
 
+Target.create "Test" (fun _ -> !!"tests/**/*.Tests.dll" |> Expecto.run id)
+
 Target.create "All" ignore
 Target.create "Release" ignore
 
-"Clean" ==> "Restore" ==> "Build" ==> "All"
-"Clean" ==> "Restore" ==> "Build" ==> "Publish" ==> "Package" ==> "Changelog" ==> "Release"
+"Clean" ==> "Restore" ==> "Build" ==> "Test" ==> "All"
+"Clean" ==> "Restore" ==> "Build" ==> "Test" ==> "Publish" ==> "Package" ==> "Changelog" ==> "Release"
 
 Target.runOrDefault "All"

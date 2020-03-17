@@ -3,7 +3,6 @@ source https://api.nuget.org/v3/index.json
 
 storage: none
 
-nuget Expecto
 nuget FSharp.Analyzers.SDK
 nuget FSharp.Compiler.Service 34.1.1
 nuget Azure.Cosmos 4.0.0-preview3 preview
@@ -11,8 +10,9 @@ nuget FSharp.Control.AsyncSeq
 nuget System.Json
 nuget Microsoft.Extensions.Configuration
 nuget Microsoft.Extensions.Configuration.Json
-nuget Microsoft.NET.Test.Sdk
-nuget YoloDev.Expecto.TestSdk
+nuget Expecto 8.13.1
+nuget YoloDev.Expecto.TestSdk 0.8.0
+nuget Microsoft.NET.Test.Sdk 15.7.2
 nuget Microsoft.SourceLink.GitHub prerelease copy_local: true
 
 // [ FAKE GROUP ]
@@ -23,3 +23,4 @@ group Build
     nuget Fake.IO.FileSystem
     nuget Fake.Core.Target
     nuget Fake.Core.ReleaseNotes
+    nuget Fake.DotNet.Testing.Expecto

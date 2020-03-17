@@ -48,7 +48,7 @@ NUGET
     Microsoft.Bcl.AsyncInterfaces (1.1) - restriction: || (&& (>= netcoreapp2.0) (< netcoreapp2.1)) (&& (>= netcoreapp2.1) (< netcoreapp3.0)) (>= netstandard2.0)
       System.Threading.Tasks.Extensions (>= 4.5.2) - restriction: || (>= net461) (&& (< netcoreapp2.1) (>= netstandard2.0)) (>= netstandard2.1)
     Microsoft.Build.Tasks.Git (1.0) - copy_local: true
-    Microsoft.CodeCoverage (16.5) - restriction: || (>= net45) (>= netcoreapp2.1)
+    Microsoft.CodeCoverage (16.5) - restriction: || (>= net45) (>= netcoreapp1.0)
     Microsoft.DotNet.PlatformAbstractions (3.1.2) - restriction: >= netcoreapp2.0
     Microsoft.Extensions.Configuration (3.1.2)
       Microsoft.Extensions.Configuration.Abstractions (>= 3.1.2) - restriction: >= netstandard2.0
@@ -73,9 +73,9 @@ NUGET
     Microsoft.Extensions.Primitives (3.1.2) - restriction: >= netstandard2.0
       System.Memory (>= 4.5.2) - restriction: && (< netcoreapp3.1) (>= netstandard2.0)
       System.Runtime.CompilerServices.Unsafe (>= 4.7) - restriction: && (< netcoreapp3.1) (>= netstandard2.0)
-    Microsoft.NET.Test.Sdk (16.5)
-      Microsoft.CodeCoverage (>= 16.5) - restriction: || (>= net45) (>= netcoreapp2.1)
-      Microsoft.TestPlatform.TestHost (>= 16.5) - restriction: >= netcoreapp2.1
+    Microsoft.NET.Test.Sdk (15.7.2)
+      Microsoft.CodeCoverage (>= 1.0.3) - restriction: || (>= net45) (>= netcoreapp1.0)
+      Microsoft.TestPlatform.TestHost (>= 15.7.2) - restriction: >= netcoreapp1.0
       Newtonsoft.Json (>= 9.0.1) - restriction: >= uap10.0
       System.ComponentModel.Primitives (>= 4.1) - restriction: >= uap10.0
       System.ComponentModel.TypeConverter (>= 4.1) - restriction: >= uap10.0
@@ -86,9 +86,9 @@ NUGET
     Microsoft.SourceLink.GitHub (1.0) - copy_local: true
       Microsoft.Build.Tasks.Git (>= 1.0)
       Microsoft.SourceLink.Common (>= 1.0)
-    Microsoft.TestPlatform.ObjectModel (16.5) - restriction: >= netcoreapp2.1
+    Microsoft.TestPlatform.ObjectModel (16.5) - restriction: || (&& (>= netcoreapp1.0) (>= uap10.0)) (>= netcoreapp2.1)
       NuGet.Frameworks (>= 5.0) - restriction: || (>= net451) (>= netstandard2.0)
-    Microsoft.TestPlatform.TestHost (16.5) - restriction: >= netcoreapp2.1
+    Microsoft.TestPlatform.TestHost (16.5) - restriction: >= netcoreapp1.0
       Microsoft.TestPlatform.ObjectModel (>= 16.5) - restriction: || (>= netcoreapp2.1) (>= uap10.0)
       Newtonsoft.Json (>= 9.0.1) - restriction: || (>= netcoreapp2.1) (>= uap10.0)
     Microsoft.Win32.Primitives (4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< win8) (< wpa81) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (< netstandard1.2) (>= netstandard1.3) (< win8)) (&& (< monoandroid) (< net45) (>= netstandard1.3) (< netstandard1.4) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.4) (< netstandard1.5) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.5) (< netstandard1.6) (< win8) (< wpa81)) (&& (< monoandroid) (< net46) (>= netstandard2.0) (< xamarinios) (< xamarinmac)) (&& (< net45) (>= net46) (< netstandard1.4)) (&& (< netstandard1.5) (>= uap10.0) (< win8) (< wpa81))
@@ -148,7 +148,7 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< net45) (>= netstandard1.1) (< netstandard1.2) (< win8)) (&& (< net45) (>= netstandard1.2) (< netstandard1.3) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.3) (< netstandard1.4) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.4) (< netstandard1.5) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.5) (< netstandard1.6) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.6) (< netstandard2.0) (< win8) (< wpa81)) (&& (>= net46) (< netstandard1.4)) (&& (>= netstandard1.0) (< portable-net45+win8+wpa81) (< wp8)) (&& (< netstandard1.5) (>= uap10.0) (< uap10.1))
       System.Xml.XDocument (>= 4.3) - restriction: || (&& (< net45) (>= netstandard1.1) (< netstandard1.2) (< win8)) (&& (< net45) (>= netstandard1.2) (< netstandard1.3) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.3) (< netstandard1.4) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.4) (< netstandard1.5) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.5) (< netstandard1.6) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.6) (< netstandard2.0) (< win8) (< wpa81)) (&& (>= netstandard1.0) (< portable-net45+win8+wpa81) (< wp8)) (&& (< netstandard1.5) (>= uap10.0) (< uap10.1))
     Newtonsoft.Json (12.0.3) - restriction: || (>= netstandard2.0) (>= uap10.0)
-    NuGet.Frameworks (5.4) - restriction: >= netcoreapp2.1
+    NuGet.Frameworks (5.4) - restriction: || (&& (>= net451) (>= netcoreapp1.0) (>= uap10.0)) (&& (>= netcoreapp1.0) (>= netstandard2.0) (>= uap10.0)) (>= netcoreapp2.1)
     runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3) - restriction: && (< monoandroid) (< net46) (>= netstandard2.0) (< xamarinios) (< xamarinmac)
     runtime.debian.9-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3) - restriction: && (< monoandroid) (< net46) (>= netstandard2.0) (< xamarinios) (< xamarinmac)
     runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3) - restriction: && (< monoandroid) (< net46) (>= netstandard2.0) (< xamarinios) (< xamarinmac)
@@ -790,6 +790,14 @@ NUGET
       NuGet.Protocol (>= 4.9.4) - restriction: || (>= net462) (>= netstandard2.0)
       System.Net.Http (>= 4.3.4) - restriction: || (>= net462) (>= netstandard2.0)
       System.ValueTuple (>= 4.4) - restriction: >= net462
+    Fake.DotNet.Testing.Expecto (5.19.1)
+      Fake.Core.Process (>= 5.19.1) - restriction: || (>= net462) (>= netstandard2.0)
+      Fake.Core.String (>= 5.19.1) - restriction: || (>= net462) (>= netstandard2.0)
+      Fake.Core.Trace (>= 5.19.1) - restriction: || (>= net462) (>= netstandard2.0)
+      Fake.IO.FileSystem (>= 5.19.1) - restriction: || (>= net462) (>= netstandard2.0)
+      Fake.Testing.Common (>= 5.19.1) - restriction: || (>= net462) (>= netstandard2.0)
+      FSharp.Core (>= 4.7) - restriction: || (>= net462) (>= netstandard2.0)
+      System.ValueTuple (>= 4.4) - restriction: >= net462
     Fake.IO.FileSystem (5.19.1)
       Fake.Core.String (>= 5.19.1) - restriction: || (>= net462) (>= netstandard2.0)
       FSharp.Core (>= 4.7) - restriction: || (>= net462) (>= netstandard2.0)
@@ -800,6 +808,10 @@ NUGET
       Fake.Core.Trace (>= 5.19.1) - restriction: || (>= net462) (>= netstandard2.0)
       FSharp.Core (>= 4.7) - restriction: || (>= net462) (>= netstandard2.0)
       System.Net.Http (>= 4.3.4) - restriction: || (>= net462) (>= netstandard2.0)
+      System.ValueTuple (>= 4.4) - restriction: >= net462
+    Fake.Testing.Common (5.19.1) - restriction: || (>= net462) (>= netstandard2.0)
+      Fake.Core.Trace (>= 5.19.1) - restriction: || (>= net462) (>= netstandard2.0)
+      FSharp.Core (>= 4.7) - restriction: || (>= net462) (>= netstandard2.0)
       System.ValueTuple (>= 4.4) - restriction: >= net462
     FParsec (1.1.1) - restriction: || (>= net462) (>= netstandard2.0)
       FSharp.Core (>= 4.3.4) - restriction: || (>= net45) (>= netstandard2.0)
