@@ -3,22 +3,18 @@ namespace FSharp.CosmosDb
 open Azure.Cosmos
 open FSharp.Control
 
-type ConnectionOperation =
-    { Options: CosmosClientOptions option
-      FromConnectionString: bool
-      Endpoint: string option
-      AccessKey: string option
-      ConnectionString: string option
-      DatabaseId: string option
-      ContainerName: string option }
-
-type QueryOperation =
-    { Connection: ConnectionOperation
-      Query: string option
-      Parameters: (string * obj) list }
-
+[<RequireQualifiedAccess>]
 module Cosmos =
-    let private defaultConnectionOp =
+    type ConnectionOperation =
+        private { Options: CosmosClientOptions option
+                  FromConnectionString: bool
+                  Endpoint: string option
+                  AccessKey: string option
+                  ConnectionString: string option
+                  DatabaseId: string option
+                  ContainerName: string option }
+
+    let private defaultConnectionOp() =
         { Options = None
           FromConnectionString = false
           Endpoint = None
@@ -27,23 +23,18 @@ module Cosmos =
           DatabaseId = None
           ContainerName = None }
 
-    let private defaultQueryOp =
-        { Connection = defaultConnectionOp
-          Query = None
-          Parameters = [] }
-
     let fromConnectionString connString =
-        { defaultConnectionOp with
+        { defaultConnectionOp() with
               FromConnectionString = true
               ConnectionString = connString }
 
     let fromConnectionStringWithOptions connString op =
-        { defaultConnectionOp with
+        { defaultConnectionOp() with
               Options = Some op
               FromConnectionString = true
               ConnectionString = connString }
 
-    let host endpoint = { defaultConnectionOp with Endpoint = Some endpoint }
+    let host endpoint = { defaultConnectionOp() with Endpoint = Some endpoint }
 
     let connectWithOptions options accessKey op =
         { op with
@@ -56,8 +47,20 @@ module Cosmos =
 
     let container cn op = { op with ContainerName = Some cn }
 
+    // --- QUERY --- //
+
+    type QueryOperation =
+        private { Connection: ConnectionOperation
+                  Query: string option
+                  Parameters: (string * obj) list }
+
+    let private defaultQueryOp() =
+        { Connection = defaultConnectionOp()
+          Query = None
+          Parameters = [] }
+
     let query query op =
-        { defaultQueryOp with
+        { defaultQueryOp() with
               Query = Some query
               Connection = op }
 
@@ -65,6 +68,7 @@ module Cosmos =
 
     let execAsync<'T> op =
         let connInfo = op.Connection
+
         let clientOps =
             match connInfo.Options with
             | Some op -> op
