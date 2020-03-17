@@ -39,7 +39,7 @@ module Cosmos =
 
     let host endpoint =
         { Options = None
-          Endpoint = endpoint
+          Endpoint = Some endpoint
           FromConnectionString = false
           AccessKey = None
           ConnectionString = None
