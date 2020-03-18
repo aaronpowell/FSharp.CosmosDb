@@ -5,6 +5,7 @@
   <ItemGroup>
     <Compile Include="../shared/AsyncSeqExt.fs" />
     <Compile Include="../shared/MaybeBinder.fs" />
+    <Compile Include="PartitionKeyAttribute.fs" />
     <Compile Include="Cosmos.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />

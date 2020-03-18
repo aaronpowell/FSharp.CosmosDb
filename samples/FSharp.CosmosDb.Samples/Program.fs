@@ -39,11 +39,20 @@ type Family =
       Children: Child array
       Address: Address }
 
-let getFamilies host key =
-    Cosmos.host host
+let getFamiliesConnection host key =
+    host
+    |> Cosmos.host
     |> Cosmos.connect key
-    |> Cosmos.database "FamilyDatabaseA"
-    |> Cosmos.container "FamilyContainerB"
+    |> Cosmos.database "FamilyDatabase"
+    |> Cosmos.container "FamilyContainer"
+
+let insertFamilies<'T> conn (families: 'T list) =
+    conn
+    |> Cosmos.insertMany<'T> families
+    |> Cosmos.execAsync<'T>
+
+let getFamilies conn =
+    conn
     |> Cosmos.query "SELECT * FROM f WHERE f.Name = @name AND f.Age = @AGE"
     |> Cosmos.parameters
         [ "age", box 35
@@ -65,9 +74,29 @@ let main argv =
         let host = config.["CosmosConnection:Host"]
         let key = config.["CosmosConnection:Key"]
 
-        let families = getFamilies host key
+        let conn = getFamiliesConnection host key
 
-        do! families |> AsyncSeq.iter (fun f -> printfn "%A" f)
+        let families =
+            [| { Id = "Powell.1"
+                 LastName = "Powell"
+                 Parents =
+                     [| { FamilyName = "Powell"
+                          FirstName = "Aaron" } |]
+                 Children = Array.empty
+                 Address =
+                     { State = "NSW"
+                       Country = "Australia"
+                       City = "Sydney" }
+                 IsRegistered = true } |]
+            |> Array.toList
+
+        let insert = insertFamilies conn families
+
+        do! insert |> AsyncSeq.iter (fun f -> printfn "Inserted: %A" f)
+
+        let families = getFamilies conn
+
+        do! families |> AsyncSeq.iter (fun f -> printfn "Got: %A" f)
 
         return 0 // return an integer exit code
     }

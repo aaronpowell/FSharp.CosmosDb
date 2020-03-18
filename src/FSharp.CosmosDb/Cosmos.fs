@@ -2,6 +2,8 @@ namespace FSharp.CosmosDb
 
 open Azure.Cosmos
 open FSharp.Control
+open System
+open System.Reflection
 
 [<RequireQualifiedAccess>]
 module Cosmos =
@@ -47,12 +49,21 @@ module Cosmos =
 
     let container cn op = { op with ContainerName = Some cn }
 
-    // --- QUERY --- //
-
-    type QueryOperation =
+    // --- Operation Types --- //
+    type QueryOp =
         private { Connection: ConnectionOperation
                   Query: string option
                   Parameters: (string * obj) list }
+
+    type InsertOp<'T> =
+        private { Connection: ConnectionOperation
+                  Values: 'T list }
+
+    type ContainerOperation<'T> =
+        | Query of QueryOp
+        | Insert of InsertOp<'T>
+
+    // --- QUERY --- //
 
     let private defaultQueryOp() =
         { Connection = defaultConnectionOp()
@@ -60,15 +71,31 @@ module Cosmos =
           Parameters = [] }
 
     let query query op =
-        { defaultQueryOp() with
-              Query = Some query
-              Connection = op }
+        Query
+            { defaultQueryOp() with
+                  Query = Some query
+                  Connection = op }
 
-    let parameters arr op = { op with Parameters = arr }
+    let parameters arr op =
+        match op with
+        | Query q -> Query { q with Parameters = arr }
+        | _ -> failwith "Only the Query discriminated union supports parameters"
 
-    let execAsync<'T> op =
-        let connInfo = op.Connection
+    // --- INSERT --- //
 
+    let insertMany<'T> (values: 'T list) op =
+        Insert
+            { Connection = op
+              Values = values }
+
+    let insert<'T> (value: 'T) op =
+        Insert
+            { Connection = op
+              Values = [ value ] }
+
+    // --- Execute --- //
+
+    let private getClient connInfo =
         let clientOps =
             match connInfo.Options with
             | Some op -> op
@@ -86,8 +113,16 @@ module Cosmos =
                     return new CosmosClient(host, accessKey, clientOps) }
 
         match client with
+        | Some client -> client
         | None -> failwith "No connection information provided"
-        | Some client ->
+
+
+    let execAsync<'T> (op: ContainerOperation<'T>) =
+        match op with
+        | Query op ->
+            let connInfo = op.Connection
+            let client = getClient connInfo
+
             let result =
                 maybe {
                     let! databaseId = connInfo.DatabaseId
@@ -107,6 +142,42 @@ module Cosmos =
 
             match result with
             | Some result -> result
+            | None ->
+                failwith
+                    "Unable to construct a query as some values are missing across the database, container name and query"
+        | Insert op ->
+            let connInfo = op.Connection
+            let client = getClient connInfo
+
+            let result =
+                maybe {
+                    let! databaseId = connInfo.DatabaseId
+                    let! containerName = connInfo.ContainerName
+
+                    let db = client.GetDatabase databaseId
+                    let container = db.GetContainer containerName
+
+                    let partitionKey =
+                        match PartitionKeyAttributeTools.findPartitionKey<'T>() with
+                        | Some name -> Nullable(PartitionKey name)
+                        | None -> Nullable()
+
+                    return match op.Values with
+                           | [ single ] -> [ container.CreateItemAsync<'T>(single, partitionKey) |> Async.AwaitTask ]
+                           | _ ->
+                               op.Values
+                               |> List.map (fun single ->
+                                   container.CreateItemAsync<'T>(single, partitionKey) |> Async.AwaitTask)
+                }
+
+            match result with
+            | Some result ->
+                result
+                |> List.map (fun item ->
+                    async {
+                        let! value = item
+                        return value.Value })
+                |> AsyncSeq.ofSeqAsync
             | None ->
                 failwith
                     "Unable to construct a query as some values are missing across the database, container name and query"
