@@ -49,7 +49,7 @@ let getFamiliesConnection host key =
 let insertFamilies<'T> conn (families: 'T list) =
     conn
     |> Cosmos.insertMany<'T> families
-    |> Cosmos.execAsync<'T>
+    |> Cosmos.execAsync
 
 let getFamilies conn =
     conn

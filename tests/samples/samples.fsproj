@@ -3,10 +3,11 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="simpleSample.fs" />
+    <ProjectReference Include="..\..\src\FSharp.CosmosDb\FSharp.CosmosDb.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\FSharp.CosmosDb\FSharp.CosmosDb.fsproj" />
+    <Compile Include="insertSample.fs" />
+    <Compile Include="simpleSample.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

@@ -35,6 +35,19 @@ module CosmosCodeAnalysis =
             | _ -> None
         | _ -> None
 
+    let (|LongIdent|_|) =
+        function
+        | SynExpr.LongIdent(isOptional, longDotId, altName, identRange) ->
+            match longDotId with
+            | LongIdentWithDots(listOfIds, ranges) ->
+                let fullName =
+                    listOfIds
+                    |> List.map (fun id -> id.idText)
+                    |> String.concat "."
+
+                Some(fullName, range)
+        | _ -> None
+
     let (|Query|_|) =
         function
         | Apply("Cosmos.query", SynExpr.Const(SynConst.String(query, queryRange), constRange), range, appRange) ->
@@ -163,6 +176,16 @@ module CosmosCodeAnalysis =
         | SynExpr.App(exprAtomic, isInfix, funcExpr, argExpr, range) ->
             match argExpr with
             | Apply(("Cosmos.execAsync"), lambdaExp, funcRange, appRange) ->
+                let blocks =
+                    [ yield! findQuery funcExpr
+                      yield! findDatabase funcExpr
+                      yield! findContainerName funcExpr
+                      yield! findParameters funcExpr ]
+
+                [ { blocks = blocks
+                    range = range } ]
+
+            | LongIdent(("Cosmos.execAsync"), appRange) ->
                 let blocks =
                     [ yield! findQuery funcExpr
                       yield! findDatabase funcExpr
