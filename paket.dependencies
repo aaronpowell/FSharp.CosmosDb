@@ -14,6 +14,7 @@ nuget Expecto 8.13.1
 nuget YoloDev.Expecto.TestSdk 0.8.0
 nuget Microsoft.NET.Test.Sdk 15.7.2
 nuget Microsoft.SourceLink.GitHub prerelease copy_local: true
+nuget Microsoft.NETFramework.ReferenceAssemblies copy_local: true
 
 // [ FAKE GROUP ]
 group Build
