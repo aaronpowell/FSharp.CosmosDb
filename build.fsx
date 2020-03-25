@@ -82,7 +82,7 @@ Target.create "SetVersionForCI" (fun _ ->
     let changelog = getChangelog()
     printfn "::set-env name=package_version::%s" changelog.NuGetVersion)
 
-Target.create "Test" (fun _ -> !!"tests/**/*.Tests.dll" |> Expecto.run id)
+Target.create "Test" (fun _ -> DotNet.test id sln)
 
 Target.create "All" ignore
 Target.create "Release" ignore
