@@ -2,7 +2,7 @@ name: Build previews
 
 env:
   OUTPUT_PATH: ${{ github.workspace }}/.nupkg
-  DOTNET_VERSION: "3.1.100"
+  DOTNET_VERSION: "2.1.805"
 
 on:
   push:
