@@ -46,6 +46,12 @@ let getFamiliesConnection host key =
     |> Cosmos.database "FamilyDatabase"
     |> Cosmos.container "FamilyContainer"
 
+let getFamiliesConnectionFromConnString connectionString =
+    connectionString
+    |> Cosmos.fromConnectionString
+    |> Cosmos.database "FamilyDatabase"
+    |> Cosmos.container "FamilyContainer"
+
 let insertFamilies<'T> conn (families: 'T list) =
     conn
     |> Cosmos.insertMany<'T> families
@@ -71,10 +77,13 @@ let main argv =
     let config = builder.Build()
 
     async {
-        let host = config.["CosmosConnection:Host"]
-        let key = config.["CosmosConnection:Key"]
+        // let host = config.["CosmosConnection:Host"]
+        // let key = config.["CosmosConnection:Key"]
+        // let conn = getFamiliesConnection host key
 
-        let conn = getFamiliesConnection host key
+        let connectionString = config.["CosmosConnection:ConnectionString"]
+
+        let conn = getFamiliesConnectionFromConnString connectionString
 
         let families =
             [| { Id = "Powell.1"

@@ -28,13 +28,13 @@ module Cosmos =
     let fromConnectionString connString =
         { defaultConnectionOp() with
               FromConnectionString = true
-              ConnectionString = connString }
+              ConnectionString = Some connString }
 
     let fromConnectionStringWithOptions connString op =
         { defaultConnectionOp() with
               Options = Some op
               FromConnectionString = true
-              ConnectionString = connString }
+              ConnectionString = Some connString }
 
     let host endpoint = { defaultConnectionOp() with Endpoint = Some endpoint }
 
