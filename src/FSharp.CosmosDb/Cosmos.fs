@@ -7,15 +7,6 @@ open System.Reflection
 
 [<RequireQualifiedAccess>]
 module Cosmos =
-    type ConnectionOperation =
-        private { Options: CosmosClientOptions option
-                  FromConnectionString: bool
-                  Endpoint: string option
-                  AccessKey: string option
-                  ConnectionString: string option
-                  DatabaseId: string option
-                  ContainerName: string option }
-
     let private defaultConnectionOp() =
         { Options = None
           FromConnectionString = false
@@ -48,20 +39,6 @@ module Cosmos =
     let database dbId op = { op with DatabaseId = Some dbId }
 
     let container cn op = { op with ContainerName = Some cn }
-
-    // --- Operation Types --- //
-    type QueryOp =
-        private { Connection: ConnectionOperation
-                  Query: string option
-                  Parameters: (string * obj) list }
-
-    type InsertOp<'T> =
-        private { Connection: ConnectionOperation
-                  Values: 'T list }
-
-    type ContainerOperation<'T> =
-        | Query of QueryOp
-        | Insert of InsertOp<'T>
 
     // --- QUERY --- //
 
@@ -119,65 +96,5 @@ module Cosmos =
 
     let execAsync<'T> (op: ContainerOperation<'T>) =
         match op with
-        | Query op ->
-            let connInfo = op.Connection
-            let client = getClient connInfo
-
-            let result =
-                maybe {
-                    let! databaseId = connInfo.DatabaseId
-                    let! containerName = connInfo.ContainerName
-
-                    let db = client.GetDatabase databaseId
-                    let container = db.GetContainer containerName
-
-                    let! query = op.Query
-                    let qd =
-                        op.Parameters
-                        |> List.fold (fun (qd: QueryDefinition) (key, value) -> qd.WithParameter(key, value))
-                               (QueryDefinition query)
-
-                    return container.GetItemQueryIterator<'T> qd |> AsyncSeq.ofAsyncEnum
-                }
-
-            match result with
-            | Some result -> result
-            | None ->
-                failwith
-                    "Unable to construct a query as some values are missing across the database, container name and query"
-        | Insert op ->
-            let connInfo = op.Connection
-            let client = getClient connInfo
-
-            let result =
-                maybe {
-                    let! databaseId = connInfo.DatabaseId
-                    let! containerName = connInfo.ContainerName
-
-                    let db = client.GetDatabase databaseId
-                    let container = db.GetContainer containerName
-
-                    let partitionKey =
-                        match PartitionKeyAttributeTools.findPartitionKey<'T>() with
-                        | Some name -> Nullable(PartitionKey name)
-                        | None -> Nullable()
-
-                    return match op.Values with
-                           | [ single ] -> [ container.CreateItemAsync<'T>(single, partitionKey) |> Async.AwaitTask ]
-                           | _ ->
-                               op.Values
-                               |> List.map (fun single ->
-                                   container.CreateItemAsync<'T>(single, partitionKey) |> Async.AwaitTask)
-                }
-
-            match result with
-            | Some result ->
-                result
-                |> List.map (fun item ->
-                    async {
-                        let! value = item
-                        return value.Value })
-                |> AsyncSeq.ofSeqAsync
-            | None ->
-                failwith
-                    "Unable to construct a query as some values are missing across the database, container name and query"
+        | Query op -> OperationHandling.execQuery getClient op
+        | Insert op -> OperationHandling.execInsert getClient op
