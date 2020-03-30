@@ -7,6 +7,7 @@
 - Ability to create a connection from a connection string with `Cosmos.fromConnectionString`
 - Insert API
 - Update API
+- Delete API
 
 ### Changed
 

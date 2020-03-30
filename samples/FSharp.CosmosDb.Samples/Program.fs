@@ -71,6 +71,11 @@ let updateFamily conn id =
     |> Cosmos.updateItem<Family> id (fun family -> { family with IsRegistered = not family.IsRegistered })
     |> Cosmos.execAsync
 
+let deleteFamily conn id =
+    conn
+    |> Cosmos.deleteItem<Family> id
+    |> Cosmos.execAsync
+
 [<EntryPoint>]
 let main argv =
     let environmentName = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
@@ -113,6 +118,9 @@ let main argv =
 
         let updatePowell = updateFamily conn "Powell.1"
         do! updatePowell |> AsyncSeq.iter (fun f -> printfn "Updated: %A" f)
+
+        let deletePowell = deleteFamily conn "Powell.1"
+        do! deletePowell |> AsyncSeq.iter (fun f -> printfn "Deleted: %A" f)
 
         return 0 // return an integer exit code
     }

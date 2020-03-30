@@ -78,6 +78,13 @@ module Cosmos =
               Id = id
               Updater = updater }
 
+    // --- DELETE --- //
+
+    let deleteItem<'T> id op =
+        Delete
+            { Connection = op
+              Id = id }
+
     // --- Execute --- //
 
     let private getClient connInfo =
@@ -107,3 +114,4 @@ module Cosmos =
         | Query op -> OperationHandling.execQuery getClient op
         | Insert op -> OperationHandling.execInsert getClient op
         | Update op -> OperationHandling.execUpdate getClient op
+        | Delete op -> OperationHandling.execDelete getClient op

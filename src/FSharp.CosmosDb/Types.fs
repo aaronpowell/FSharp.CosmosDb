@@ -26,7 +26,12 @@ type UpdateOp<'T> =
        Id: string
        Updater: 'T -> 'T }
 
+type DeleteOp<'T> =
+     { Connection: ConnectionOperation
+       Id: string }   
+
 type ContainerOperation<'T> =
     | Query of QueryOp
     | Insert of InsertOp<'T>
     | Update of UpdateOp<'T>
+    | Delete of DeleteOp<'T>

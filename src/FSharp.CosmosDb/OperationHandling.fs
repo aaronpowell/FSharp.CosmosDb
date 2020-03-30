@@ -104,3 +104,33 @@ let execUpdate (getClient: ConnectionOperation -> CosmosClient) (op: UpdateOp<'T
         |> AsyncSeq.ofSeqAsync
 
     | None -> failwith "Unable to read from the container to get the item for updating"
+
+let execDelete (getClient: ConnectionOperation -> CosmosClient) (op: DeleteOp<'T>) =
+    let connInfo = op.Connection
+    let client = getClient connInfo
+
+    let result =
+        maybe {
+            let! databaseId = connInfo.DatabaseId
+            let! containerName = connInfo.ContainerName
+
+            let db = client.GetDatabase databaseId
+            let container = db.GetContainer containerName
+
+            let partitionKey =
+                match PartitionKeyAttributeTools.findPartitionKey<'T>() with
+                | Some name -> PartitionKey name
+                | None ->
+                    failwith
+                        "Unable to determine partition key from type, ensure there is a [<PartitionKey>] attribute on the apprioriate field"
+
+            return container.DeleteItemAsync(op.Id, partitionKey) |> Async.AwaitTask
+        }
+
+    match result with
+    | Some result ->
+        [ async {
+            let! currentItemResponse = result
+            return currentItemResponse.Value } ] |> AsyncSeq.ofSeqAsync
+
+    | None -> failwith "Unable to read from the container to get the item for updating"
