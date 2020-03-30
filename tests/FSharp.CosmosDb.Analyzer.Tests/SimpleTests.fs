@@ -4,12 +4,9 @@ open Expecto
 open System
 open FSharp.CosmosDb.Analyzer
 
-let inline find file = IO.Path.Combine(__SOURCE_DIRECTORY__, file)
-let inline context file = AnalyzerBootstrap.context file
-
 [<Tests>]
 let tests =
-    testList "Simple Operation Discovery"
+    testList "Connection object discovery"
         [ test "Finds all the operations in a file" {
               match context (find "../samples/simpleSample.fs") with
               | None -> failwith "Could not load test script"
@@ -18,32 +15,15 @@ let tests =
                   Expect.equal 1 (List.length ops) "Found one operation block"
           }
 
-          test "Found operation should have 3 analysable bits" {
+          test "Found operation should have 2 analysable bits" {
               match context (find "../samples/simpleSample.fs") with
               | None -> failwith "Could not load test script"
               | Some context ->
+                  printfn "%A" context
                   let ops = CosmosCodeAnalysis.findOperations context
                   let head = List.exactlyOne ops
-                  Expect.equal 4 (List.length head.blocks) "Found four things to analyse"
-          }
-
-          test "Query should match expected" {
-              match context (find "../samples/simpleSample.fs") with
-              | None -> failwith "Could not load test script"
-              | Some context ->
-                  let ops = CosmosCodeAnalysis.findOperations context
-                  let head = List.exactlyOne ops
-
-                  let query =
-                      head.blocks
-                      |> List.tryFind (function
-                          | CosmosAnalyzerBlock.Query(_) -> true
-                          | _ -> false)
-                      |> Option.map (function
-                          | CosmosAnalyzerBlock.Query(query, range) -> query
-                          | _ -> failwith "Should've found the query operation")
-
-                  Expect.equal "SELECT * FROM u WHERE u.Name = @name" query.Value "Query matches the one in code"
+                  printfn "%A" head.blocks
+                  Expect.equal 2 (List.length head.blocks) "Found two things to analyse"
           }
 
           test "DatabaseId should match expected" {
@@ -82,28 +62,4 @@ let tests =
                           | _ -> failwith "Should've found the ContainerName operation")
 
                   Expect.equal "UserContainer" container.Value "ContainerName matches the one in code"
-          }
-
-          test "Parameter should match expected" {
-              match context (find "../samples/simpleSample.fs") with
-              | None -> failwith "Could not load test script"
-              | Some context ->
-                  let ops = CosmosCodeAnalysis.findOperations context
-                  let head = List.exactlyOne ops
-
-                  let parameters =
-                      head.blocks
-                      |> List.tryFind (function
-                          | CosmosAnalyzerBlock.Parameters(_) -> true
-                          | _ -> false)
-                      |> Option.map (function
-                          | CosmosAnalyzerBlock.Parameters(parameters, _) -> parameters
-                          | _ -> failwith "Should've found the Parameters operation")
-
-                  match parameters with
-                  | Some p ->
-                      Expect.equal 1 p.Length "Only 1 parameter was defined"
-                      let nameParam = List.exactlyOne p
-                      Expect.equal "name" nameParam.name "Parameter key is 'name'"
-                  | None -> failwith "Parameters not found"
           } ]

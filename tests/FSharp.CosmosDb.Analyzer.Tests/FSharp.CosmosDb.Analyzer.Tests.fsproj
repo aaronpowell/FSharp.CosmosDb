@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
   <ItemGroup>
@@ -9,8 +8,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalyzerBootstrap.fs" />
+    <Compile Include="TestUtils.fs" />
     <Compile Include="InsertTests.fs" />
     <Compile Include="SimpleTests.fs" />
+    <Compile Include="QueryTests.fs" />
     <Compile Include="ParameterAnalysisTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

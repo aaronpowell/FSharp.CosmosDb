@@ -1,11 +1,7 @@
 module InsertTests
 
 open Expecto
-open System
 open FSharp.CosmosDb.Analyzer
-
-let inline find file = IO.Path.Combine(__SOURCE_DIRECTORY__, file)
-let inline context file = AnalyzerBootstrap.context file
 
 [<Tests>]
 let tests =
