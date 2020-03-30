@@ -35,7 +35,8 @@
       "presentation": {
         "reveal": "always"
       },
-      "problemMatcher": "$msCompile"
+      "problemMatcher": "$msCompile",
+      "dependsOn": ["build"]
     }
   ]
 }
