@@ -5,10 +5,13 @@
 ### Added
 
 - Ability to create a connection from a connection string with `Cosmos.fromConnectionString`
+- Insert API
+- Update API
 
 ### Changed
 
 - Introduced a `maybe` computational expression to simplify option types
+- Major refactor of the internals
 
 ## [0.1.1] - 2020-03-13
 

@@ -21,6 +21,12 @@ type InsertOp<'T> =
     { Connection: ConnectionOperation
       Values: 'T list }
 
+type UpdateOp<'T> =
+     { Connection: ConnectionOperation
+       Id: string
+       Updater: 'T -> 'T }
+
 type ContainerOperation<'T> =
     | Query of QueryOp
     | Insert of InsertOp<'T>
+    | Update of UpdateOp<'T>

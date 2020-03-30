@@ -70,6 +70,14 @@ module Cosmos =
             { Connection = op
               Values = [ value ] }
 
+    // --- UPDATE --- //
+
+    let updateItem<'T> id (updater: 'T -> 'T) op =
+        Update
+            { Connection = op
+              Id = id
+              Updater = updater }
+
     // --- Execute --- //
 
     let private getClient connInfo =
@@ -98,3 +106,4 @@ module Cosmos =
         match op with
         | Query op -> OperationHandling.execQuery getClient op
         | Insert op -> OperationHandling.execInsert getClient op
+        | Update op -> OperationHandling.execUpdate getClient op

@@ -33,6 +33,7 @@ type Address =
 type Family =
     { [<JsonPropertyName("id")>]
       Id: string
+      [<PartitionKey>]
       LastName: string
       IsRegistered: bool
       Parents: Parent array
@@ -55,7 +56,7 @@ let getFamiliesConnectionFromConnString connectionString =
 let insertFamilies<'T> conn (families: 'T list) =
     conn
     |> Cosmos.insertMany<'T> families
-    |> Cosmos.execAsync
+    |> Cosmos.execAsync<'T>
 
 let getFamilies conn =
     conn
@@ -64,6 +65,11 @@ let getFamilies conn =
         [ "age", box 35
           "lastName", box "Powell" ]
     |> Cosmos.execAsync<Family>
+
+let updateFamily conn id =
+    conn
+    |> Cosmos.updateItem<Family> id (fun family -> { family with IsRegistered = not family.IsRegistered })
+    |> Cosmos.execAsync
 
 [<EntryPoint>]
 let main argv =
@@ -100,12 +106,13 @@ let main argv =
             |> Array.toList
 
         let insert = insertFamilies conn families
-
         do! insert |> AsyncSeq.iter (fun f -> printfn "Inserted: %A" f)
 
         let families = getFamilies conn
-
         do! families |> AsyncSeq.iter (fun f -> printfn "Got: %A" f)
+
+        let updatePowell = updateFamily conn "Powell.1"
+        do! updatePowell |> AsyncSeq.iter (fun f -> printfn "Updated: %A" f)
 
         return 0 // return an integer exit code
     }
