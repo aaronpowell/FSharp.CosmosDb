@@ -13,6 +13,7 @@
 
 - Introduced a `maybe` computational expression to simplify option types
 - Major refactor of the internals
+- Change analyzer to support using appsettings not just environment variables to find connection info
 
 ## [0.1.1] - 2020-03-13
 
