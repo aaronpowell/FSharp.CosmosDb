@@ -22,13 +22,15 @@ type InsertOp<'T> =
       Values: 'T list }
 
 type UpdateOp<'T> =
-     { Connection: ConnectionOperation
-       Id: string
-       Updater: 'T -> 'T }
+    { Connection: ConnectionOperation
+      Id: string
+      PartitionKey: string
+      Updater: 'T -> 'T }
 
 type DeleteOp<'T> =
-     { Connection: ConnectionOperation
-       Id: string }   
+    { Connection: ConnectionOperation
+      Id: string
+      PartitionKey: string }
 
 type ContainerOperation<'T> =
     | Query of QueryOp

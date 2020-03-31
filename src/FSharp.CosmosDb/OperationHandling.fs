@@ -44,17 +44,24 @@ let execInsert (getClient: ConnectionOperation -> CosmosClient) (op: InsertOp<'T
             let db = client.GetDatabase databaseId
             let container = db.GetContainer containerName
 
-            let partitionKey =
-                match PartitionKeyAttributeTools.findPartitionKey<'T>() with
-                | Some name -> Nullable(PartitionKey name)
+            let partitionKey = PartitionKeyAttributeTools.findPartitionKey<'T>()
+
+            let getPartitionKeyValue single =
+                match partitionKey with
+                | Some propertyInfo ->
+                    let value = propertyInfo.GetValue(single)
+                    Nullable(PartitionKey(value.ToString()))
                 | None -> Nullable()
 
             return match op.Values with
-                   | [ single ] -> [ container.CreateItemAsync<'T>(single, partitionKey) |> Async.AwaitTask ]
+                   | [ single ] ->
+                       let pk = getPartitionKeyValue single
+                       [ container.CreateItemAsync<'T>(single, pk) |> Async.AwaitTask ]
                    | _ ->
                        op.Values
-                       |> List.map
-                           (fun single -> container.CreateItemAsync<'T>(single, partitionKey) |> Async.AwaitTask)
+                       |> List.map (fun single ->
+                           let pk = getPartitionKeyValue single
+                           container.CreateItemAsync<'T>(single, pk) |> Async.AwaitTask)
         }
 
     match result with
@@ -80,24 +87,26 @@ let execUpdate (getClient: ConnectionOperation -> CosmosClient) (op: UpdateOp<'T
             let db = client.GetDatabase databaseId
             let container = db.GetContainer containerName
 
-            let partitionKey =
-                match PartitionKeyAttributeTools.findPartitionKey<'T>() with
-                | Some name -> PartitionKey name
-                | None ->
-                    failwith
-                        "Unable to determine partition key from type, ensure there is a [<PartitionKey>] attribute on the apprioriate field"
-
-            return (container, partitionKey, container.ReadItemAsync(op.Id, partitionKey) |> Async.AwaitTask)
+            return (container, container.ReadItemAsync(op.Id, PartitionKey op.PartitionKey) |> Async.AwaitTask)
         }
 
     match result with
-    | Some(container, pk, result) ->
+    | Some(container, result) ->
         [ async {
             let! currentItemResponse = result
 
             let newItem = op.Updater currentItemResponse.Value
 
-            let! newItemResponse = container.ReplaceItemAsync(newItem, op.Id, Nullable pk) |> Async.AwaitTask
+            let partitionKey = PartitionKeyAttributeTools.findPartitionKey<'T>()
+
+            let pk =
+                match partitionKey with
+                | Some propertyInfo ->
+                    let value = propertyInfo.GetValue(newItem)
+                    Nullable(PartitionKey(value.ToString()))
+                | None -> Nullable()
+
+            let! newItemResponse = container.ReplaceItemAsync(newItem, op.Id, pk) |> Async.AwaitTask
 
             return newItemResponse.Value
           } ]
@@ -117,14 +126,7 @@ let execDelete (getClient: ConnectionOperation -> CosmosClient) (op: DeleteOp<'T
             let db = client.GetDatabase databaseId
             let container = db.GetContainer containerName
 
-            let partitionKey =
-                match PartitionKeyAttributeTools.findPartitionKey<'T>() with
-                | Some name -> PartitionKey name
-                | None ->
-                    failwith
-                        "Unable to determine partition key from type, ensure there is a [<PartitionKey>] attribute on the apprioriate field"
-
-            return container.DeleteItemAsync(op.Id, partitionKey) |> Async.AwaitTask
+            return container.DeleteItemAsync(op.Id, PartitionKey op.PartitionKey) |> Async.AwaitTask
         }
 
     match result with

@@ -58,7 +58,8 @@ let insertFamilies<'T> conn (families: 'T list) =
     |> Cosmos.insertMany<'T> families
     |> Cosmos.execAsync<'T>
 
-let getFamilies conn =
+// this is to test a broken query in the analyzer
+let getFamiliesBroken conn =
     conn
     |> Cosmos.query "SELECT * FROM f WHERE f.Name = @name AND f.Age = @AGE"
     |> Cosmos.parameters
@@ -66,14 +67,20 @@ let getFamilies conn =
           "lastName", box "Powell" ]
     |> Cosmos.execAsync<Family>
 
-let updateFamily conn id =
+let getFamilies conn =
     conn
-    |> Cosmos.updateItem<Family> id (fun family -> { family with IsRegistered = not family.IsRegistered })
+    |> Cosmos.query "SELECT * FROM f WHERE f.LastName = @lastName"
+    |> Cosmos.parameters [ "@lastName", box "Powell" ]
+    |> Cosmos.execAsync<Family>
+
+let updateFamily conn id pk =
+    conn
+    |> Cosmos.updateItem<Family> id pk (fun family -> { family with IsRegistered = not family.IsRegistered })
     |> Cosmos.execAsync
 
-let deleteFamily conn id =
+let deleteFamily conn id pk =
     conn
-    |> Cosmos.deleteItem<Family> id
+    |> Cosmos.deleteItem<Family> id pk
     |> Cosmos.execAsync
 
 [<EntryPoint>]
@@ -116,10 +123,10 @@ let main argv =
         let families = getFamilies conn
         do! families |> AsyncSeq.iter (fun f -> printfn "Got: %A" f)
 
-        let updatePowell = updateFamily conn "Powell.1"
+        let updatePowell = updateFamily conn "Powell.1" "Powell"
         do! updatePowell |> AsyncSeq.iter (fun f -> printfn "Updated: %A" f)
 
-        let deletePowell = deleteFamily conn "Powell.1"
+        let deletePowell = deleteFamily conn "Powell.1" "Powell"
         do! deletePowell |> AsyncSeq.iter (fun f -> printfn "Deleted: %A" f)
 
         return 0 // return an integer exit code

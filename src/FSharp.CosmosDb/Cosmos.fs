@@ -72,18 +72,20 @@ module Cosmos =
 
     // --- UPDATE --- //
 
-    let updateItem<'T> id (updater: 'T -> 'T) op =
+    let updateItem<'T> id partitionKey (updater: 'T -> 'T) op =
         Update
             { Connection = op
               Id = id
+              PartitionKey = partitionKey
               Updater = updater }
 
     // --- DELETE --- //
 
-    let deleteItem<'T> id op =
+    let deleteItem<'T> id partitionKey op =
         Delete
             { Connection = op
-              Id = id }
+              Id = id
+              PartitionKey = partitionKey }
 
     // --- Execute --- //
 
