@@ -84,10 +84,30 @@ Target.create "SetVersionForCI" (fun _ ->
 
 Target.create "Test" (fun _ -> DotNet.test id sln)
 
-Target.create "All" ignore
+Target.create "RunAnalyzer" (fun ctx ->
+    let args =
+        sprintf
+            "--project samples/FSharp.CosmosDb.Samples/FSharp.CosmosDb.Samples.fsproj --analyzers-path src/FSharp.CosmosDb.Analyzer/bin/%A/netcoreapp2.0/publish"
+            (configuration (ctx.Context.AllExecutingTargets))
+    DotNet.exec id "fsharp-analyzers" args |> ignore)
+
+Target.create "Default" ignore
 Target.create "Release" ignore
 
-"Clean" ==> "Restore" ==> "Build" ==> "Test" ==> "All"
-"Clean" ==> "Restore" ==> "Build" ==> "Test" ==> "Publish" ==> "Package" ==> "Changelog" ==> "Release"
+"Clean"
+    ==> "Restore"
+    ==> "Build"
+    ==> "Default"
 
-Target.runOrDefault "All"
+"Default"
+    ==> "Publish"
+    ==> "Test"
+    ==> "Package"
+    ==> "Changelog"
+    ==> "Release"
+
+"Default"
+    ==> "Publish"
+    ==> "RunAnalyzer"
+
+Target.runOrDefault "Default"

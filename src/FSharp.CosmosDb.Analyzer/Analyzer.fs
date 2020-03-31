@@ -8,6 +8,8 @@ open Azure.Cosmos
 [<Analyzer>]
 let cosmosDbAnalyzer: Analyzer =
     fun (context: Context) ->
+        printfn "pwd: %s" Environment.CurrentDirectory
+
         let syntaxBlocks = CosmosCodeAnalysis.findOperations context
 
         let host = Environment.GetEnvironmentVariable "FSHARP_COSMOS_HOST"

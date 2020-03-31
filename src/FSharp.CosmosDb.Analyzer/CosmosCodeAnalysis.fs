@@ -102,10 +102,10 @@ module CosmosCodeAnalysis =
                     Some(parameterName, paramRange, fullName, identRange, None)
             | _ -> None
         | SynExpr.Tuple(isStruct, [ firstItem; secondItem ], commaRange, tupleRange) ->
-            printfn "%A %A" firstItem secondItem
+            printfn "Tuple: %A %A" firstItem secondItem
             None
         | x ->
-            printfn "%A" x
+            printfn "No idea: %A" x
             None
 
     let rec readParameters =
