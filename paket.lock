@@ -41,6 +41,9 @@ NUGET
     FSharp.Control.AsyncSeq (2.0.23)
       FSharp.Core (>= 3.1.2) - restriction: >= net45
       FSharp.Core (>= 4.3.2) - restriction: && (< net45) (>= netstandard2.0)
+    FSharp.SystemTextJson (0.10.25)
+      FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
+      System.Text.Json (>= 4.6) - restriction: && (< netcoreapp3.0) (>= netstandard2.0)
     McMaster.NETCore.Plugins (1.1) - restriction: >= netcoreapp2.0
       Microsoft.DotNet.PlatformAbstractions (>= 3.1) - restriction: >= netcoreapp2.0
       Microsoft.Extensions.DependencyModel (>= 3.1) - restriction: >= netcoreapp2.0
