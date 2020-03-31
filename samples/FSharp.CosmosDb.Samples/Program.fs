@@ -75,12 +75,12 @@ let getFamilies conn =
 
 let updateFamily conn id pk =
     conn
-    |> Cosmos.updateItem<Family> id pk (fun family -> { family with IsRegistered = not family.IsRegistered })
+    |> Cosmos.update<Family> id pk (fun family -> { family with IsRegistered = not family.IsRegistered })
     |> Cosmos.execAsync
 
 let deleteFamily conn id pk =
     conn
-    |> Cosmos.deleteItem<Family> id pk
+    |> Cosmos.delete<Family> id pk
     |> Cosmos.execAsync
 
 [<EntryPoint>]
