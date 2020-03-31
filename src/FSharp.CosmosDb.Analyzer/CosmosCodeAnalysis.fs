@@ -171,6 +171,8 @@ module CosmosCodeAnalysis =
 
         | _ -> []
 
+    // This represents the "tail" of our AST, so we match on all the ways that it could end
+    // and then walk backwards from there to find the other parts that should exist
     let rec visitSyntacticExpression (expr: SynExpr) (fullExpressionRange: range) =
         match expr with
         | SynExpr.App(exprAtomic, isInfix, funcExpr, argExpr, range) ->
@@ -223,6 +225,20 @@ module CosmosCodeAnalysis =
                       yield! findContainerName funcExpr
                       yield CosmosAnalyzerBlock.Parameters(queryParams, range) ]
 
+                [ { blocks = blocks
+                    range = range } ]
+
+            | Container(containerName, range) ->
+                let blocks =
+                    [ CosmosAnalyzerBlock.ContainerName(containerName, range)
+                      yield! findDatabase funcExpr ]
+                [ { blocks = blocks
+                    range = range } ]
+
+            | Database(dbId, range) ->
+                let blocks =
+                    [ CosmosAnalyzerBlock.DatabaseId(dbId, range)
+                      yield! findContainerName funcExpr ]
                 [ { blocks = blocks
                     range = range } ]
 
