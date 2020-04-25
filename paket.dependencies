@@ -4,7 +4,7 @@ source https://api.nuget.org/v3/index.json
 storage: none
 
 nuget FSharp.Analyzers.SDK
-nuget FSharp.Compiler.Service 34.1.1
+nuget FSharp.Compiler.Service 35.0.0
 nuget Azure.Cosmos 4.0.0-preview3 preview
 nuget FSharp.Control.AsyncSeq
 nuget System.Json

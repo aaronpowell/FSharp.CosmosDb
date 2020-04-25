@@ -1,8 +1,8 @@
 namespace FSharp.CosmosDb.Analyzer
 
 open FSharp.Analyzers.SDK
-open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
+open FSharp.Compiler.SyntaxTree
 
 module CosmosCodeAnalysis =
     let (|Apply|_|) =
@@ -111,7 +111,7 @@ module CosmosCodeAnalysis =
     let rec readParameters =
         function
         | ParameterTuple(name, range, func, funcRange, appRange) -> [ name, range, func, funcRange, appRange ]
-        | SynExpr.Sequential(SequencePointInfoForSeq.SequencePointsAtSeq, isTrueSeq, expr1, expr2, seqRange) ->
+        | SynExpr.Sequential(debugSeqPoint, isTrueSeq, expr1, expr2, seqRange) ->
             [ yield! readParameters expr1
               yield! readParameters expr2 ]
         | _ -> []
