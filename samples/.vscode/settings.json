@@ -2,5 +2,6 @@
   "FSharp.enableAnalyzers": true,
   "FSharp.analyzersPath": [
     "../src/FSharp.CosmosDb.Analyzer/bin/Debug/netcoreapp2.0/publish"
-  ]
+  ],
+  "FSharp.suggestGitignore": false
 }

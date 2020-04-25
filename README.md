@@ -8,17 +8,51 @@ This project is a wrapper around the [Cosmos DB](https://docs.microsoft.com/azur
 
 Install via NuGet:
 
-```
+```bash
 dotnet add package FSharp.CosmosDb
 ```
 
 Or using Paket:
 
-```
+```bash
 dotnet paket add FSharp.CosmosDb
 ```
 
 ## Usage
+
+All operations will return an `AsyncSeq` via [FSharp.Control.AsyncSeq](http://fsprojects.github.io/FSharp.Control.AsyncSeq/index.html) that contains the data fetched, data inserted or data updated.
+
+### Insert
+
+```fsharp
+open FSharp.CosmosDb
+
+let connStr = "..."
+
+let insertUsers data =
+    connStr
+    |> Cosmos.fromConnectionString
+    |> Cosmos.database "UserDb"
+    |> Cosmos.container "UserContainer"
+    |> Cosmos.insertMany<User> data
+    |> Cosmos.execAsync
+```
+
+### Update
+
+```fsharp
+open FSharp.CosmosDb
+
+let connStr = "..."
+
+let updateUser id partitionKey =
+    connStr
+    |> Cosmos.fromConnectionString
+    |> Cosmos.database "UserDb"
+    |> Cosmos.container "UserContainer"
+    |> Cosmos.update<User> id partitionKey (fun user -> { user with IsRegistered = true })
+    |> Cosmos.execAsync
+```
 
 ### Query
 
@@ -32,13 +66,11 @@ let findUsers() =
     |> Cosmos.host
     |> Cosmos.connect key
     |> Cosmos.database "UserDb"
-    |> Cosmos.container |> "UserContainer"
+    |> Cosmos.container "UserContainer"
     |> Cosmos.query "SELECT u.FirstName, u.LastName FROM u WHERE u.LastName = @name"
     |> Cosmos.parameters [ "name", box "Powell" ]
     |> Cosmos.execAsync<User>
 ```
-
-The result from a query is an `AsyncSeq` via [FSharp.Control.AsyncSeq](http://fsprojects.github.io/FSharp.Control.AsyncSeq/index.html).
 
 ```f#
 [<EntryPoint>]
@@ -50,6 +82,22 @@ let main argv =
 
         return 0
     } |> Async.RunSynchronously
+```
+
+### Delete
+
+```fsharp
+open FSharp.CosmosDb
+
+let connStr = "..."
+
+let updateUser id partitionKey =
+    connStr
+    |> Cosmos.fromConnectionString
+    |> Cosmos.database "UserDb"
+    |> Cosmos.container "UserContainer"
+    |> Cosmos.deleteItem id partitionKey
+    |> Cosmos.execAsync
 ```
 
 # FSharp.CosmosDb.Analyzer 💡
@@ -71,12 +119,36 @@ Also part of this repo is a [F# Analyzer](https://github.com/ionide/FSharp.Analy
 - Detection of supplied but unused parameters
   - Quick fix provided with list of declared parameters
 
-## Usage
+## Analyzer Usage
 
-### 1. Set two environment variables:
+### 1. Provide connection information
 
-- `FSHARP_COSMOS_HOST` -> The host address of your Cosmos DB
-- `FSHARP_COSMOS_KEY` -> The access key of your Cosmos DB
+Connection information can be provided as either environment variables or using an `appsettings.json`/`appsettings.Development.json` file.
+
+#### Environment Variables
+
+The analyzer will look for the following environment variables:
+
+- `FSHARP_COSMOS_CONNSTR` -> A full connection string to Cosmos DB
+- `FSHARP_COSMOS_HOST` & `FSHARP_COSMOS_KEY` -> The URI endpoint and access key
+
+The `FSHARP_COSMOS_CONNSTR` will take precedence if both sets of environment variables are provided
+
+#### App Settings
+
+The analyzer will look for a file matching `appsettings.json` or `appsettings.Development.json` in either the workspace root of the VS Code instance or relative to the file being parsed. The file is expected to have the following JSON structure in it:
+
+```json
+{
+  "CosmosConnection": {
+    "ConnectionString": "",
+    "Host": "",
+    "Key": ""
+  }
+}
+```
+
+If `CosmosConnection.ConnectionString` exists, it will be used, otherwise it will use the `CosmosConnection.Host` and `CosmosConnection.Key` to connect.
 
 ### 2. Install the Analyzer from paket
 
@@ -97,7 +169,7 @@ Add the following settings (globally or in the workspace):
 
 [MIT](./License.md)
 
-# Thank Yous
+# Thank You
 
 - Zaid Ajaj for the [Npgsql Analyzer](https://github.com/Zaid-Ajaj/Npgsql.FSharp.Analyzer). Without this I wouldn't have been able to work out how to do it (and there's some code lifted from there)
 - [Krzysztof Cieślak](https://twitter.com/k_cieslak) for the amazing Ionide plugin

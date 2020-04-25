@@ -1,5 +1,21 @@
 # Changelog for `FSharp.CosmosDb`
 
+## [0.2.0]
+
+### Added
+
+- Ability to create a connection from a connection string with `Cosmos.fromConnectionString`
+- Insert API
+- Update API
+- Delete API
+
+### Changed
+
+- Introduced a `maybe` computational expression to simplify option types
+- Major refactor of the internals
+- Change analyzer to support using appsettings not just environment variables to find connection info
+- Bumped dependency for FSAC to 35.0.0
+
 ## [0.1.1] - 2020-03-13
 
 ### Changed

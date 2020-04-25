@@ -2,25 +2,32 @@ namespace FSharp.CosmosDb
 
 open Azure.Cosmos
 open FSharp.Control
+open System
+open System.Reflection
 
-type CosmosOperation =
-    { Options: CosmosClientOptions option
-      Endpoint: string
-      AccessKey: string option
-      DatabaseId: string option
-      ContainerName: string option
-      Query: string option
-      Parameters: (string * obj) list }
-
+[<RequireQualifiedAccess>]
 module Cosmos =
-    let host endpoint =
+    let private defaultConnectionOp() =
         { Options = None
-          Endpoint = endpoint
+          FromConnectionString = false
+          Endpoint = None
           AccessKey = None
+          ConnectionString = None
           DatabaseId = None
-          ContainerName = None
-          Query = None
-          Parameters = List.empty }
+          ContainerName = None }
+
+    let fromConnectionString connString =
+        { defaultConnectionOp() with
+              FromConnectionString = true
+              ConnectionString = Some connString }
+
+    let fromConnectionStringWithOptions connString op =
+        { defaultConnectionOp() with
+              Options = Some op
+              FromConnectionString = true
+              ConnectionString = Some connString }
+
+    let host endpoint = { defaultConnectionOp() with Endpoint = Some endpoint }
 
     let connectWithOptions options accessKey op =
         { op with
@@ -33,34 +40,80 @@ module Cosmos =
 
     let container cn op = { op with ContainerName = Some cn }
 
-    let query query op = { op with Query = Some query }
+    // --- QUERY --- //
 
-    let parameters arr op = { op with Parameters = arr }
+    let private defaultQueryOp() =
+        { Connection = defaultConnectionOp()
+          Query = None
+          Parameters = [] }
 
-    let execAsync<'T> op =
+    let query query op =
+        Query
+            { defaultQueryOp() with
+                  Query = Some query
+                  Connection = op }
+
+    let parameters arr op =
+        match op with
+        | Query q -> Query { q with Parameters = arr }
+        | _ -> failwith "Only the Query discriminated union supports parameters"
+
+    // --- INSERT --- //
+
+    let insertMany<'T> (values: 'T list) op =
+        Insert
+            { Connection = op
+              Values = values }
+
+    let insert<'T> (value: 'T) op =
+        Insert
+            { Connection = op
+              Values = [ value ] }
+
+    // --- UPDATE --- //
+
+    let update<'T> id partitionKey (updater: 'T -> 'T) op =
+        Update
+            { Connection = op
+              Id = id
+              PartitionKey = partitionKey
+              Updater = updater }
+
+    // --- DELETE --- //
+
+    let delete<'T> id partitionKey op =
+        Delete
+            { Connection = op
+              Id = id
+              PartitionKey = partitionKey }
+
+    // --- Execute --- //
+
+    let private getClient connInfo =
         let clientOps =
-            match op.Options with
+            match connInfo.Options with
             | Some op -> op
             | None -> CosmosClientOptions()
 
-        match op.AccessKey with
-        | Some connectionString ->
-            match op.DatabaseId with
-            | Some dbId ->
-                match op.ContainerName with
-                | Some cn ->
-                    match op.Query with
-                    | Some query ->
-                        let client = new CosmosClient(op.Endpoint, connectionString, clientOps)
-                        let db = client.GetDatabase dbId
-                        let container = db.GetContainer cn
-                        let qd = QueryDefinition query
-                        op.Parameters
-                        |> List.map (fun (key, value) -> qd.WithParameter(key, value))
-                        |> ignore
+        let client =
+            if connInfo.FromConnectionString then
+                maybe {
+                    let! connStr = connInfo.ConnectionString
+                    return new CosmosClient(connStr, clientOps) }
+            else
+                maybe {
+                    let! host = connInfo.Endpoint
+                    let! accessKey = connInfo.AccessKey
+                    return new CosmosClient(host, accessKey, clientOps) }
 
-                        container.GetItemQueryIterator<'T> qd |> AsyncSeq.ofAsyncEnum
-                    | None -> failwith "No query provided"
-                | None -> failwith "No container name provided"
-            | None -> failwith "No dabase id provided"
-        | None -> failwith "No access key provided"
+        match client with
+        | Some client -> client
+        | None -> failwith "No connection information provided"
+
+
+    let execAsync<'T> (op: ContainerOperation<'T>) =
+        match op with
+        | Query op -> OperationHandling.execQuery getClient op
+        | Insert op -> OperationHandling.execInsert getClient op
+        | Update op -> OperationHandling.execUpdate getClient op
+        | Delete op -> OperationHandling.execDelete getClient op

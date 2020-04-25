@@ -1,8 +1,8 @@
 namespace FSharp.CosmosDb.Analyzer
 
 open FSharp.Analyzers.SDK
-open FSharp.Compiler.Ast
 open FSharp.Compiler.Range
+open FSharp.Compiler.SyntaxTree
 
 module CosmosCodeAnalysis =
     let (|Apply|_|) =
@@ -33,6 +33,19 @@ module CosmosCodeAnalysis =
 
                     Some(fullName, argExpr, funcExpr.Range, applicationRange)
             | _ -> None
+        | _ -> None
+
+    let (|LongIdent|_|) =
+        function
+        | SynExpr.LongIdent(isOptional, longDotId, altName, identRange) ->
+            match longDotId with
+            | LongIdentWithDots(listOfIds, ranges) ->
+                let fullName =
+                    listOfIds
+                    |> List.map (fun id -> id.idText)
+                    |> String.concat "."
+
+                Some(fullName, range)
         | _ -> None
 
     let (|Query|_|) =
@@ -89,16 +102,16 @@ module CosmosCodeAnalysis =
                     Some(parameterName, paramRange, fullName, identRange, None)
             | _ -> None
         | SynExpr.Tuple(isStruct, [ firstItem; secondItem ], commaRange, tupleRange) ->
-            printfn "%A %A" firstItem secondItem
+            printfn "Tuple: %A %A" firstItem secondItem
             None
         | x ->
-            printfn "%A" x
+            printfn "No idea: %A" x
             None
 
     let rec readParameters =
         function
         | ParameterTuple(name, range, func, funcRange, appRange) -> [ name, range, func, funcRange, appRange ]
-        | SynExpr.Sequential(SequencePointInfoForSeq.SequencePointsAtSeq, isTrueSeq, expr1, expr2, seqRange) ->
+        | SynExpr.Sequential(debugSeqPoint, isTrueSeq, expr1, expr2, seqRange) ->
             [ yield! readParameters expr1
               yield! readParameters expr2 ]
         | _ -> []
@@ -158,11 +171,23 @@ module CosmosCodeAnalysis =
 
         | _ -> []
 
+    // This represents the "tail" of our AST, so we match on all the ways that it could end
+    // and then walk backwards from there to find the other parts that should exist
     let rec visitSyntacticExpression (expr: SynExpr) (fullExpressionRange: range) =
         match expr with
         | SynExpr.App(exprAtomic, isInfix, funcExpr, argExpr, range) ->
             match argExpr with
             | Apply(("Cosmos.execAsync"), lambdaExp, funcRange, appRange) ->
+                let blocks =
+                    [ yield! findQuery funcExpr
+                      yield! findDatabase funcExpr
+                      yield! findContainerName funcExpr
+                      yield! findParameters funcExpr ]
+
+                [ { blocks = blocks
+                    range = range } ]
+
+            | LongIdent(("Cosmos.execAsync"), appRange) ->
                 let blocks =
                     [ yield! findQuery funcExpr
                       yield! findDatabase funcExpr
@@ -200,6 +225,20 @@ module CosmosCodeAnalysis =
                       yield! findContainerName funcExpr
                       yield CosmosAnalyzerBlock.Parameters(queryParams, range) ]
 
+                [ { blocks = blocks
+                    range = range } ]
+
+            | Container(containerName, range) ->
+                let blocks =
+                    [ CosmosAnalyzerBlock.ContainerName(containerName, range)
+                      yield! findDatabase funcExpr ]
+                [ { blocks = blocks
+                    range = range } ]
+
+            | Database(dbId, range) ->
+                let blocks =
+                    [ CosmosAnalyzerBlock.DatabaseId(dbId, range)
+                      yield! findContainerName funcExpr ]
                 [ { blocks = blocks
                     range = range } ]
 

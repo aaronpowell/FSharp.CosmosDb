@@ -5,6 +5,7 @@ open Fake.DotNet
 open Fake.IO
 open Fake.IO.Globbing.Operators
 open Fake.Core.TargetOperators
+open Fake.DotNet.Testing
 
 Target.initEnvironment()
 
@@ -81,10 +82,32 @@ Target.create "SetVersionForCI" (fun _ ->
     let changelog = getChangelog()
     printfn "::set-env name=package_version::%s" changelog.NuGetVersion)
 
-Target.create "All" ignore
+Target.create "Test" (fun _ -> DotNet.test id sln)
+
+Target.create "RunAnalyzer" (fun ctx ->
+    let args =
+        sprintf
+            "--project samples/FSharp.CosmosDb.Samples/FSharp.CosmosDb.Samples.fsproj --analyzers-path src/FSharp.CosmosDb.Analyzer/bin/%A/netcoreapp2.0/publish"
+            (configuration (ctx.Context.AllExecutingTargets))
+    DotNet.exec id "fsharp-analyzers" args |> ignore)
+
+Target.create "Default" ignore
 Target.create "Release" ignore
 
-"Clean" ==> "Restore" ==> "Build" ==> "All"
-"Clean" ==> "Restore" ==> "Build" ==> "Publish" ==> "Package" ==> "Changelog" ==> "Release"
+"Clean"
+    ==> "Restore"
+    ==> "Build"
+    ==> "Default"
 
-Target.runOrDefault "All"
+"Default"
+    ==> "Publish"
+    ==> "Test"
+    ==> "Package"
+    ==> "Changelog"
+    ==> "Release"
+
+"Default"
+    ==> "Publish"
+    ==> "RunAnalyzer"
+
+Target.runOrDefault "Default"

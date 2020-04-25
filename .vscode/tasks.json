@@ -9,9 +9,7 @@
       "type": "shell",
       "args": [
         "build",
-        // Ask dotnet build to generate full paths for file names.
         "/property:GenerateFullPaths=true",
-        // Do not generate summary otherwise it leads to duplicate errors in Problems panel
         "/consoleloggerparameters:NoSummary"
       ],
       "group": {
@@ -35,7 +33,18 @@
       "presentation": {
         "reveal": "always"
       },
-      "problemMatcher": "$msCompile"
+      "problemMatcher": "$msCompile",
+      "dependsOn": ["build"]
+    },
+    {
+      "label": "run analyzers",
+      "type": "shell",
+      "command": "dotnet",
+      "args": ["fake", "run", "./build.fsx", "--target", "RunAnalyzer"],
+      "problemMatcher": ["$msCompile"],
+      "presentation": {
+        "reveal": "always"
+      }
     }
   ]
 }

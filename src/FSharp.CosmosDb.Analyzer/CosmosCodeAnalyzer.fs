@@ -13,8 +13,8 @@ type ConnectionResult =
     | Success of CosmosClient
 
 module CosmosCodeAnalyzer =
-    let testConnection host key =
-        let client = new CosmosClient(host, key, CosmosClientOptions())
+    let testConnection connStr =
+        let client = new CosmosClient(connStr, CosmosClientOptions())
 
         try
             client.ReadAccountAsync()

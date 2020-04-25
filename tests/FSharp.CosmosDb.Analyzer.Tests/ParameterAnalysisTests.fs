@@ -122,6 +122,6 @@ let tests =
 
               let fix = queryParamMsg.Fixes |> List.tryExactlyOne
               Expect.isSome fix "One fix was found for name"
-              Expect.equal "NAME" fix.Value.ToText "ToText matches provided parameter"
+              Expect.equal "\"NAME\"" fix.Value.ToText "ToText matches provided parameter"
               Expect.equal "name" fix.Value.FromText "FromText matches used parameter"
           } ]

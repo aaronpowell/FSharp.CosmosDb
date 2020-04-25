@@ -1,15 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\FSharp.CosmosDb.Analyzer\FSharp.CosmosDb.Analyzer.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalyzerBootstrap.fs" />
+    <Compile Include="TestUtils.fs" />
+    <Compile Include="InsertTests.fs" />
     <Compile Include="SimpleTests.fs" />
+    <Compile Include="QueryTests.fs" />
     <Compile Include="ParameterAnalysisTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

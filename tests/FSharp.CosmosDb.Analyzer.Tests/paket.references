@@ -2,5 +2,6 @@ Expecto
 FSharp.Core
 FSharp.Analyzers.SDK
 FSharp.Compiler.Service
-Microsoft.NET.Test.Sdk
+Microsoft.NETFramework.ReferenceAssemblies
 YoloDev.Expecto.TestSdk
+Microsoft.NET.Test.Sdk
