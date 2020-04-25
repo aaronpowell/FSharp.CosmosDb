@@ -66,6 +66,7 @@ Target.create "Package" (fun ctx ->
     DotNet.pack (fun c ->
         { c with
               Configuration = configuration (ctx.Context.AllExecutingTargets)
+              OutputPath = Some "./.nupkg"
               Common = c.Common |> DotNet.Options.withAdditionalArgs args }) sln)
 
 Target.create "PackageVersion" (fun _ ->
@@ -94,20 +95,16 @@ Target.create "RunAnalyzer" (fun ctx ->
 Target.create "Default" ignore
 Target.create "Release" ignore
 
-"Clean"
-    ==> "Restore"
-    ==> "Build"
-    ==> "Default"
+"Clean" ==> "Restore" ==> "Build" ==> "Default"
 
 "Default"
-    ==> "Publish"
-    ==> "Test"
-    ==> "Package"
-    ==> "Changelog"
-    ==> "Release"
+"Default"
+"Default"
+"Default" ==> "Publish" ==> "Test" ==> "Package" ==> "Changelog" ==> "Release"
 
 "Default"
-    ==> "Publish"
-    ==> "RunAnalyzer"
+"Default"
+"Default"
+"Default" ==> "Publish" ==> "RunAnalyzer"
 
 Target.runOrDefault "Default"
