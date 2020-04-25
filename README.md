@@ -119,7 +119,7 @@ Also part of this repo is a [F# Analyzer](https://github.com/ionide/FSharp.Analy
 - Detection of supplied but unused parameters
   - Quick fix provided with list of declared parameters
 
-## Usage
+## Analyzer Usage
 
 ### 1. Provide connection information
 
