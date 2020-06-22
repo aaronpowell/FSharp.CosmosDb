@@ -14,7 +14,8 @@ type ConnectionResult =
 
 module CosmosCodeAnalyzer =
     let testConnection connStr =
-        let client = new CosmosClient(connStr, CosmosClientOptions())
+        let client =
+            new CosmosClient(connStr, CosmosClientOptions())
 
         try
             client.ReadAccountAsync()
@@ -23,7 +24,8 @@ module CosmosCodeAnalyzer =
             |> ignore
             Success client
         with
-        | :? AggregateException as ex when ex.InnerExceptions |> Seq.exists (fun e -> e :? HttpRequestException) ->
+        | :? AggregateException as ex when ex.InnerExceptions
+                                           |> Seq.exists (fun e -> e :? HttpRequestException) ->
             Error "Could not establish Cosmos DB connection."
         | ex ->
             printfn "%A" ex
@@ -32,24 +34,28 @@ module CosmosCodeAnalyzer =
     let findDatabaseOperation (operation: CosmosOperation) =
         operation.blocks
         |> List.tryFind (function
-            | CosmosAnalyzerBlock.DatabaseId(_) -> true
+            | CosmosAnalyzerBlock.DatabaseId (_) -> true
             | _ -> false)
         |> Option.map (function
-            | CosmosAnalyzerBlock.DatabaseId(databaseId, range) -> (databaseId, range)
+            | CosmosAnalyzerBlock.DatabaseId (databaseId, range) -> (databaseId, range)
             | _ -> failwith "No database operation")
 
     let analyzeDatabaseOperation databaseId (range: range) (cosmosClient: CosmosClient) =
         async {
-            let! result = cosmosClient.GetDatabaseQueryIterator<DatabaseProperties>()
-                          |> AsyncSeq.ofAsyncEnum
-                          |> AsyncSeq.toListAsync
+            let! result =
+                cosmosClient.GetDatabaseQueryIterator<DatabaseProperties>()
+                |> AsyncSeq.ofAsyncEnum
+                |> AsyncSeq.toListAsync
 
-            let matching = result |> List.exists (fun db -> db.Id = databaseId)
+            let matching =
+                result
+                |> List.exists (fun db -> db.Id = databaseId)
 
             return if matching then
                        []
                    else
-                       let msg = Messaging.warning (sprintf "The database '%s' was not found." databaseId) range
+                       let msg =
+                           Messaging.warning (sprintf "The database '%s' was not found." databaseId) range
 
                        let fixes =
                            result
@@ -65,19 +71,23 @@ module CosmosCodeAnalyzer =
     let findContainerOperation (operation: CosmosOperation) =
         operation.blocks
         |> List.tryFind (function
-            | CosmosAnalyzerBlock.ContainerName(_) -> true
+            | CosmosAnalyzerBlock.ContainerName (_) -> true
             | _ -> false)
         |> Option.map (function
-            | CosmosAnalyzerBlock.ContainerName(containerName, range) -> (containerName, range)
+            | CosmosAnalyzerBlock.ContainerName (containerName, range) -> (containerName, range)
             | _ -> failwith "No container name operation")
 
     let analyzeContainerNameOperation databaseId containerName (range: range) (cosmosClient: CosmosClient) =
         async {
             try
-                let! result = cosmosClient.GetDatabase(databaseId).GetContainerQueryIterator<ContainerProperties>()
-                              |> AsyncSeq.ofAsyncEnum
-                              |> AsyncSeq.toListAsync
-                let matching = result |> List.exists (fun containerProps -> containerProps.Id = containerName)
+                let! result =
+                    cosmosClient.GetDatabase(databaseId).GetContainerQueryIterator<ContainerProperties>()
+                    |> AsyncSeq.ofAsyncEnum
+                    |> AsyncSeq.toListAsync
+
+                let matching =
+                    result
+                    |> List.exists (fun containerProps -> containerProps.Id = containerName)
 
                 return if matching then
                            []
@@ -94,7 +104,8 @@ module CosmosCodeAnalyzer =
 
                            [ { msg with Fixes = fixes } ]
             with
-            | :? AggregateException as ex when ex.InnerExceptions |> Seq.exists (fun e -> e :? CosmosException) ->
+            | :? AggregateException as ex when ex.InnerExceptions
+                                               |> Seq.exists (fun e -> e :? CosmosException) ->
                 return [ Messaging.warning "Failed to retrieve container names, database name is probably invalid."
                              range ]
             | ex ->
@@ -106,24 +117,24 @@ module CosmosCodeAnalyzer =
     let findParameters (operation: CosmosOperation) =
         operation.blocks
         |> List.tryFind (function
-            | CosmosAnalyzerBlock.Parameters(_) -> true
+            | CosmosAnalyzerBlock.Parameters (_) -> true
             | _ -> false)
         |> Option.map (function
-            | CosmosAnalyzerBlock.Parameters(parameters, range) -> (parameters, range)
+            | CosmosAnalyzerBlock.Parameters (parameters, range) -> (parameters, range)
             | _ -> failwith "No parameter operation")
 
     let findQuery (operation: CosmosOperation) =
         operation.blocks
         |> List.tryFind (function
-            | CosmosAnalyzerBlock.Query(_) -> true
+            | CosmosAnalyzerBlock.Query (_) -> true
             | _ -> false)
         |> Option.map (function
-            | CosmosAnalyzerBlock.Query(query, range) -> (query, range)
+            | CosmosAnalyzerBlock.Query (query, range) -> (query, range)
             | _ -> failwith "No query operation")
 
     let analyzeParameters operation (parameters: UsedParameter list) (parametersRange: range) =
         match findQuery operation with
-        | Some(query, queryRange) ->
+        | Some (query, queryRange) ->
             let paramsInQuery =
                 Regex.Matches(query, "@(\\w+)")
                 |> Seq.cast<Match>
@@ -154,10 +165,12 @@ module CosmosCodeAnalyzer =
             let excessiveParams =
                 suppliedButNotUsed
                 |> List.map (fun p ->
-                    let up = parameters |> List.find (fun upp -> upp.name = p)
+                    let up =
+                        parameters |> List.find (fun upp -> upp.name = p)
+
                     let msg =
-                        Messaging.warning (sprintf "The parameter '%s' is defined but not used in the query" p)
-                            up.range
+                        Messaging.warning (sprintf "The parameter '%s' is defined but not used in the query" p) up.range
+
                     { msg with
                           Fixes =
                               paramsInQuery
@@ -172,14 +185,18 @@ module CosmosCodeAnalyzer =
                 |> List.map (fun p ->
                     let paramWithSym = sprintf "@%s" p
                     let paramPosInQuery = query.IndexOf paramWithSym
+
                     let paramRangeInQuery =
-                        mkRange paramWithSym
-                            (mkPos queryRange.StartLine (queryRange.StartColumn + paramPosInQuery + 1))
+                        mkRange paramWithSym (mkPos queryRange.StartLine (queryRange.StartColumn + paramPosInQuery + 1))
                             (mkPos queryRange.EndLine
-                                 (queryRange.StartColumn + paramPosInQuery + paramWithSym.Length + 1))
+                                 (queryRange.StartColumn
+                                  + paramPosInQuery
+                                  + paramWithSym.Length
+                                  + 1))
+
                     let msg =
-                        Messaging.warning (sprintf "The parameter '%s' is defined but not provided" p)
-                            paramRangeInQuery
+                        Messaging.warning (sprintf "The parameter '%s' is defined but not provided" p) paramRangeInQuery
+
                     { msg with
                           Fixes =
                               parameters
@@ -193,7 +210,5 @@ module CosmosCodeAnalyzer =
 
         | None ->
             parameters
-            |> List.map
-                (fun p ->
-                    Messaging.warning (sprintf "The parameter '%s' is defined but not used in the query" p.name)
-                        p.range)
+            |> List.map (fun p ->
+                Messaging.warning (sprintf "The parameter '%s' is defined but not used in the query" p.name) p.range)
