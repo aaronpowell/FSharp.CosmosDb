@@ -12,7 +12,7 @@ type ConnectionOperation =
       ContainerName: string option }
 
 // --- Operation Types --- //
-type QueryOp =
+type QueryOp<'T> =
     { Connection: ConnectionOperation
       Query: string option
       Parameters: (string * obj) list }
@@ -33,7 +33,7 @@ type DeleteOp<'T> =
       PartitionKey: string }
 
 type ContainerOperation<'T> =
-    | Query of QueryOp
+    | Query of QueryOp<'T>
     | Insert of InsertOp<'T>
     | Update of UpdateOp<'T>
     | Delete of DeleteOp<'T>

@@ -6,16 +6,14 @@ let key = "testing"
 let endpointUrl = "https://localhost"
 
 [<CLIMutable>]
-type User =
-    { Id: string
-      Name: string }
+type User = { Id: string; Name: string }
 
-let findUsers() =
+let findUsers () =
     endpointUrl
     |> Cosmos.host
     |> Cosmos.connect key
     |> Cosmos.database "UserDb"
     |> Cosmos.container "UserContainer"
-    |> Cosmos.query "SELECT * FROM u WHERE u.Name = @name"
+    |> Cosmos.query<User> "SELECT * FROM u WHERE u.Name = @name"
     |> Cosmos.parameters [ "name", box "Aaron" ]
-    |> Cosmos.execAsync<User>
+    |> Cosmos.execAsync
