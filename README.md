@@ -2,7 +2,7 @@
 
 ![Latest Build](https://github.com/aaronpowell/FSharp.CosmosDb/workflows/Build%20release%20candidate/badge.svg) ![Latest Release](https://github.com/aaronpowell/FSharp.CosmosDb/workflows/Publish%20Release/badge.svg) [![NuGet Badge - FSharp.CosmosDb](https://buildstats.info/nuget/FSharp.CosmosDb)](https://www.nuget.org/packages/FSharp.CosmosDb) [![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg?color=blue&style=flat-square)](http://opensource.org/licenses/MIT)
 
-This project is a wrapper around the [Cosmos DB](https://docs.microsoft.com/azure/cosmos-db/introduction?WT.mc_id=fsharpcosmosdb-github-aapowell) [v4 .NET SDK](https://docs.microsoft.com/azure/cosmos-db/create-sql-api-dotnet-v4?WT.mc_id=fsharpcosmosdb-github-aapowell) to make it a bit more friendly to the F# language.
+This project is a wrapper around the [Cosmos DB](https://docs.microsoft.com/azure/cosmos-db/introduction?WT.mc_id=javascript-0000-aapowell) [v4 .NET SDK](https://docs.microsoft.com/azure/cosmos-db/create-sql-api-dotnet-v4?WT.mc_id=javascript-0000-aapowell) to make it a bit more friendly to the F# language.
 
 ## Install
 
