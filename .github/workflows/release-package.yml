@@ -50,7 +50,7 @@ jobs:
           echo ${{ steps.get-action-id.outputs.id }}
           mkdir ${{ env.OUTPUT_PATH }}
           cd ${{ env.OUTPUT_PATH }}
-          curl https://api.github.com/repos/aaronpowell/FSharp.CosmosDb/actions/runs/${{ steps.get-action-id.outputs.id }}/artifacts --output artifacts.json
+          curl https://api.github.com/repos/briegel0/FSharp.CosmosDb/actions/runs/${{ steps.get-action-id.outputs.id }}/artifacts --output artifacts.json
           downloadUrl=$(cat artifacts.json | jq -c '.artifacts[] | select(.name == "packages") | .archive_download_url' | tr -d '"')
           echo $downloadUrl
           curl $downloadUrl --output packages.zip --user octocat:${{ secrets.GITHUB_TOKEN }} --verbose --location
@@ -82,7 +82,7 @@ jobs:
         run: |
           echo ${{ steps.get-action-id.outputs.id }}
           cd ${{ env.OUTPUT_PATH }}
-          curl https://api.github.com/repos/aaronpowell/FSharp.CosmosDb/actions/runs/${{ steps.get-action-id.outputs.id }} --output run.json
+          curl https://api.github.com/repos/briegel0/FSharp.CosmosDb/actions/runs/${{ steps.get-action-id.outputs.id }} --output run.json
           action_sha=$(cat run.json | jq -c '.head_sha' | tr -d '"')
           echo "::set-env name=action_sha::$action_sha"
 
