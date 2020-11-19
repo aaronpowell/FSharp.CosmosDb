@@ -6,9 +6,11 @@ env:
   ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
 
 on:
-  push:
-    branches:
-      - main
+    push:
+      branches:
+        - main
+    workflow_dispatch:
+        branches: [ main ]  
 
 jobs:
   build:
