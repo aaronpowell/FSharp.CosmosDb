@@ -16,6 +16,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+        # Put your action repo here
+      - name: Show Env
+        id: showEnvId
+        uses: briegel0/python_show_env_action@main
+        with: 
+           showGithubVars: 'true'
+
+      - name: Show outputs
+        run: |
+          echo " output ${{ steps.showEnvId.outputs.myOutput}}"
+
       - name: Setup Dotnet ${{ env.DOTNET_VERSION }}
         uses: actions/setup-dotnet@v1
         with:
