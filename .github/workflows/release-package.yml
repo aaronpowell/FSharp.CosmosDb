@@ -4,6 +4,7 @@ env:
   OUTPUT_PATH: ${{ github.workspace }}/.output
   DOTNET_VERSION: "3.1.100"
   NUGET_SOURCE: "https://api.nuget.org/v3/index.json"
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
 
 on:
   issues:
