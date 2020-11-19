@@ -3,6 +3,7 @@ name: Build release candidate
 env:
   OUTPUT_PATH: ${{ github.workspace }}/.nupkg
   DOTNET_VERSION: "3.1.100"
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
 
 on:
   push:
