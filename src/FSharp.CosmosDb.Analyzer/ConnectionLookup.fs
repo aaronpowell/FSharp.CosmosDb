@@ -11,28 +11,32 @@ let private gev key =
     then None
     else Some var
 
-let private makeConnStr = sprintf "AccountEndpoint=%s;AccountKey=%s;"
+let private makeConnStr =
+    sprintf "AccountEndpoint=%s;AccountKey=%s;"
 
 let private stringHasValue str =
-    printfn "checking %s" str
-    let ret = not (isNull str || String.IsNullOrEmpty str)
-    printfn "ret: %A" ret
-    ret
+    not (isNull str || String.IsNullOrEmpty str)
 
-let private findFromEnv() =
+let private findFromEnv () =
     let host = gev "FSHARP_COSMOS_HOST"
     let key = gev "FSHARP_COSMOS_KEY"
     let cs = gev "FSHARP_COSMOS_CONNSTR"
 
     match host, key, cs with
-    | (Some host, Some key, None) -> sprintf "AccountEndpoint=%s;AccountKey=%s;" host key |> Some
+    | (Some host, Some key, None) ->
+        sprintf "AccountEndpoint=%s;AccountKey=%s;" host key
+        |> Some
     | (None, None, cs) -> cs
     | _ -> None
 
-let private possibleFileNames = [ "appsettings.json"; "appsettings.Development.json" ]
+let private possibleFileNames =
+    [ "appsettings.json"
+      "appsettings.Development.json" ]
 
 type AppSettings =
-    { CosmosConnection: {| Host: String option; Key: String option; ConnectionString: String option |} option }
+    { CosmosConnection: {| Host: String option
+                           Key: String option
+                           ConnectionString: String option |} option }
 
 let private findFromAppSettings relativeFile =
     let folders =
@@ -41,10 +45,14 @@ let private findFromAppSettings relativeFile =
 
     let settingsFiles =
         possibleFileNames
-        |> List.map (fun file -> folders |> List.map (fun folder -> Path.Combine(folder, file)))
+        |> List.map (fun file ->
+            folders
+            |> List.map (fun folder -> Path.Combine(folder, file)))
         |> List.append
             (possibleFileNames
-             |> List.map (fun file -> folders |> List.map (fun folder -> Path.Combine(folder, file.ToLower()))))
+             |> List.map (fun file ->
+                 folders
+                 |> List.map (fun folder -> Path.Combine(folder, file.ToLower()))))
         |> List.collect id
         |> List.filter File.Exists
 
@@ -78,13 +86,12 @@ let private findFromAppSettings relativeFile =
             | (Some cs, Some _, Some _) when stringHasValue cs -> Some cs
             | (Some _, Some host, Some key) when stringHasValue host && stringHasValue key ->
                 makeConnStr host key |> Some
-            | (None, Some host, Some key) when stringHasValue host && stringHasValue key ->
-                makeConnStr host key |> Some
+            | (None, Some host, Some key) when stringHasValue host && stringHasValue key -> makeConnStr host key |> Some
             | (_, _, _) -> None
         | None -> None
 
 let findConnectionString relativeFile =
-    match findFromEnv() with
+    match findFromEnv () with
     | Some connStr -> Some connStr
     | None ->
         match findFromAppSettings relativeFile with

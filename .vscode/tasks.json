@@ -22,6 +22,20 @@
       "problemMatcher": "$msCompile"
     },
     {
+      "label": "publish",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "publish",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "presentation": {
+        "reveal": "silent"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
       "label": "test",
       "command": "dotnet",
       "type": "shell",

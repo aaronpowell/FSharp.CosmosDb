@@ -7,7 +7,7 @@ open System.Reflection
 
 [<RequireQualifiedAccess>]
 module Cosmos =
-    let private defaultConnectionOp() =
+    let private defaultConnectionOp () =
         { Options = None
           FromConnectionString = false
           Endpoint = None
@@ -17,17 +17,19 @@ module Cosmos =
           ContainerName = None }
 
     let fromConnectionString connString =
-        { defaultConnectionOp() with
+        { defaultConnectionOp () with
               FromConnectionString = true
               ConnectionString = Some connString }
 
     let fromConnectionStringWithOptions connString op =
-        { defaultConnectionOp() with
+        { defaultConnectionOp () with
               Options = Some op
               FromConnectionString = true
               ConnectionString = Some connString }
 
-    let host endpoint = { defaultConnectionOp() with Endpoint = Some endpoint }
+    let host endpoint =
+        { defaultConnectionOp () with
+              Endpoint = Some endpoint }
 
     let connectWithOptions options accessKey op =
         { op with
@@ -42,14 +44,14 @@ module Cosmos =
 
     // --- QUERY --- //
 
-    let private defaultQueryOp() =
-        { Connection = defaultConnectionOp()
+    let private defaultQueryOp () =
+        { Connection = defaultConnectionOp ()
           Query = None
           Parameters = [] }
 
-    let query query op =
+    let query<'T> query op =
         Query
-            { defaultQueryOp() with
+            { defaultQueryOp () with
                   Query = Some query
                   Connection = op }
 
@@ -61,14 +63,10 @@ module Cosmos =
     // --- INSERT --- //
 
     let insertMany<'T> (values: 'T list) op =
-        Insert
-            { Connection = op
-              Values = values }
+        Insert { Connection = op; Values = values }
 
     let insert<'T> (value: 'T) op =
-        Insert
-            { Connection = op
-              Values = [ value ] }
+        Insert { Connection = op; Values = [ value ] }
 
     // --- UPDATE --- //
 
@@ -99,17 +97,18 @@ module Cosmos =
             if connInfo.FromConnectionString then
                 maybe {
                     let! connStr = connInfo.ConnectionString
-                    return new CosmosClient(connStr, clientOps) }
+                    return new CosmosClient(connStr, clientOps)
+                }
             else
                 maybe {
                     let! host = connInfo.Endpoint
                     let! accessKey = connInfo.AccessKey
-                    return new CosmosClient(host, accessKey, clientOps) }
+                    return new CosmosClient(host, accessKey, clientOps)
+                }
 
         match client with
         | Some client -> client
         | None -> failwith "No connection information provided"
-
 
     let execAsync<'T> (op: ContainerOperation<'T>) =
         match op with
@@ -117,3 +116,8 @@ module Cosmos =
         | Insert op -> OperationHandling.execInsert getClient op
         | Update op -> OperationHandling.execUpdate getClient op
         | Delete op -> OperationHandling.execDelete getClient op
+
+    let execBatchAsync<'T> (op: ContainerOperation<'T>) =
+        match op with
+        | Query op -> OperationHandling.execQueryBatch getClient op
+        | _ -> failwith "Batch return operation only supported with query operations, use `execAsync` instead."

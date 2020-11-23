@@ -97,14 +97,8 @@ Target.create "Release" ignore
 
 "Clean" ==> "Restore" ==> "Build" ==> "Default"
 
-"Default"
-"Default"
-"Default"
 "Default" ==> "Publish" ==> "Test" ==> "Package" ==> "Changelog" ==> "Release"
 
-"Default"
-"Default"
-"Default"
 "Default" ==> "Publish" ==> "RunAnalyzer"
 
 Target.runOrDefault "Default"

@@ -6,29 +6,39 @@ open Azure.Cosmos
 open FSharp.Control
 open System
 
-let execQuery (getClient: ConnectionOperation -> CosmosClient) (op: QueryOp) =
+let execQueryInternal (getClient: ConnectionOperation -> CosmosClient) (op: QueryOp<'T>) =
     let connInfo = op.Connection
     let client = getClient connInfo
 
-    let result =
-        maybe {
-            let! databaseId = connInfo.DatabaseId
-            let! containerName = connInfo.ContainerName
+    maybe {
+        let! databaseId = connInfo.DatabaseId
+        let! containerName = connInfo.ContainerName
 
-            let db = client.GetDatabase databaseId
-            let container = db.GetContainer containerName
+        let db = client.GetDatabase databaseId
+        let container = db.GetContainer containerName
 
-            let! query = op.Query
-            let qd =
-                op.Parameters
-                |> List.fold (fun (qd: QueryDefinition) (key, value) -> qd.WithParameter(key, value))
-                       (QueryDefinition query)
+        let! query = op.Query
+        let qd =
+            op.Parameters
+            |> List.fold (fun (qd: QueryDefinition) (key, value) -> qd.WithParameter(key, value))
+                   (QueryDefinition query)
 
-            return container.GetItemQueryIterator<'T> qd |> AsyncSeq.ofAsyncEnum
-        }
+        return container.GetItemQueryIterator<'T> qd
+    }
+
+let execQuery (getClient: ConnectionOperation -> CosmosClient) (op: QueryOp<'T>) =
+    let result = execQueryInternal getClient op
 
     match result with
-    | Some result -> result
+    | Some result -> result |> AsyncSeq.ofAsyncEnum
+    | None ->
+        failwith "Unable to construct a query as some values are missing across the database, container name and query"
+
+let execQueryBatch (getClient: ConnectionOperation -> CosmosClient) (op: QueryOp<'T>) =
+    let result = execQueryInternal getClient op
+
+    match result with
+    | Some result -> result.AsPages() |> AsyncSeq.ofAsyncEnum
     | None ->
         failwith "Unable to construct a query as some values are missing across the database, container name and query"
 
