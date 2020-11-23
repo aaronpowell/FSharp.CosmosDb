@@ -49,7 +49,7 @@ module Cosmos =
           Query = None
           Parameters = [] }
 
-    let query<'T> query op =
+    let query query op =
         Query
             { defaultQueryOp () with
                   Query = Some query

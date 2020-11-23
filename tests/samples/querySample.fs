@@ -14,6 +14,6 @@ let findUsers () =
     |> Cosmos.connect key
     |> Cosmos.database "UserDb"
     |> Cosmos.container "UserContainer"
-    |> Cosmos.query<User> "SELECT * FROM u WHERE u.Name = @name"
+    |> Cosmos.query "SELECT * FROM u WHERE u.Name = @name"
     |> Cosmos.parameters [ "name", box "Aaron" ]
-    |> Cosmos.execAsync
+    |> Cosmos.execAsync<User>
