@@ -1,12 +1,15 @@
+framework: netstandard2.0, netcoreapp3.1, netcoreapp2.0
+version: 5.242.2
+
 source https://www.nuget.org/api/v2
 source https://api.nuget.org/v3/index.json
 
 storage: none
 
 nuget FSharp.Analyzers.SDK
-nuget FSharp.Compiler.Service 35.0.0
+nuget FSharp.Compiler.Service 36.0.3
 nuget Azure.Cosmos 4.0.0-preview3 preview
-nuget FSharp.Control.AsyncSeq
+nuget FSharp.Control.AsyncSeq 2.0.24
 nuget System.Json
 nuget Microsoft.Extensions.Configuration
 nuget Microsoft.Extensions.Configuration.Json
