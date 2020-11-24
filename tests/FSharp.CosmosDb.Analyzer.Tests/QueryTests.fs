@@ -6,12 +6,15 @@ open FSharp.CosmosDb.Analyzer
 
 [<Tests>]
 let tests =
-    testList "Query API can be analyzed"
+    testList
+        "Query API can be analyzed"
         [ test "Finds all the operations in a file" {
               match context (find "../samples/querySample.fs") with
               | None -> failwith "Could not load test script"
               | Some context ->
-                  let ops = CosmosCodeAnalysis.findOperations context
+                  let ops =
+                      CosmosCodeAnalysis.findOperations context
+
                   Expect.equal 1 (List.length ops) "Found one operation block"
           }
 
@@ -19,7 +22,9 @@ let tests =
               match context (find "../samples/querySample.fs") with
               | None -> failwith "Could not load test script"
               | Some context ->
-                  let ops = CosmosCodeAnalysis.findOperations context
+                  let ops =
+                      CosmosCodeAnalysis.findOperations context
+
                   let head = List.exactlyOne ops
                   Expect.equal 4 (List.length head.blocks) "Found four things to analyse"
           }
@@ -28,16 +33,18 @@ let tests =
               match context (find "../samples/querySample.fs") with
               | None -> failwith "Could not load test script"
               | Some context ->
-                  let ops = CosmosCodeAnalysis.findOperations context
+                  let ops =
+                      CosmosCodeAnalysis.findOperations context
+
                   let head = List.exactlyOne ops
 
                   let query =
                       head.blocks
                       |> List.tryFind (function
-                          | CosmosAnalyzerBlock.Query(_) -> true
+                          | CosmosAnalyzerBlock.Query (_) -> true
                           | _ -> false)
                       |> Option.map (function
-                          | CosmosAnalyzerBlock.Query(query, range) -> query
+                          | CosmosAnalyzerBlock.Query (query, range) -> query
                           | _ -> failwith "Should've found the query operation")
 
                   Expect.equal "SELECT * FROM u WHERE u.Name = @name" query.Value "Query matches the one in code"
@@ -47,16 +54,18 @@ let tests =
               match context (find "../samples/querySample.fs") with
               | None -> failwith "Could not load test script"
               | Some context ->
-                  let ops = CosmosCodeAnalysis.findOperations context
+                  let ops =
+                      CosmosCodeAnalysis.findOperations context
+
                   let head = List.exactlyOne ops
 
                   let dbId =
                       head.blocks
                       |> List.tryFind (function
-                          | CosmosAnalyzerBlock.DatabaseId(_) -> true
+                          | CosmosAnalyzerBlock.DatabaseId (_) -> true
                           | _ -> false)
                       |> Option.map (function
-                          | CosmosAnalyzerBlock.DatabaseId(dbId, _) -> dbId
+                          | CosmosAnalyzerBlock.DatabaseId (dbId, _) -> dbId
                           | _ -> failwith "Should've found the DatabaseId operation")
 
                   Expect.equal "UserDb" dbId.Value "DatabaseId matches the one in code"
@@ -66,16 +75,18 @@ let tests =
               match context (find "../samples/querySample.fs") with
               | None -> failwith "Could not load test script"
               | Some context ->
-                  let ops = CosmosCodeAnalysis.findOperations context
+                  let ops =
+                      CosmosCodeAnalysis.findOperations context
+
                   let head = List.exactlyOne ops
 
                   let container =
                       head.blocks
                       |> List.tryFind (function
-                          | CosmosAnalyzerBlock.ContainerName(_) -> true
+                          | CosmosAnalyzerBlock.ContainerName (_) -> true
                           | _ -> false)
                       |> Option.map (function
-                          | CosmosAnalyzerBlock.ContainerName(containerName, _) -> containerName
+                          | CosmosAnalyzerBlock.ContainerName (containerName, _) -> containerName
                           | _ -> failwith "Should've found the ContainerName operation")
 
                   Expect.equal "UserContainer" container.Value "ContainerName matches the one in code"
@@ -85,16 +96,18 @@ let tests =
               match context (find "../samples/querySample.fs") with
               | None -> failwith "Could not load test script"
               | Some context ->
-                  let ops = CosmosCodeAnalysis.findOperations context
+                  let ops =
+                      CosmosCodeAnalysis.findOperations context
+
                   let head = List.exactlyOne ops
 
                   let parameters =
                       head.blocks
                       |> List.tryFind (function
-                          | CosmosAnalyzerBlock.Parameters(_) -> true
+                          | CosmosAnalyzerBlock.Parameters (_) -> true
                           | _ -> false)
                       |> Option.map (function
-                          | CosmosAnalyzerBlock.Parameters(parameters, _) -> parameters
+                          | CosmosAnalyzerBlock.Parameters (parameters, _) -> parameters
                           | _ -> failwith "Should've found the Parameters operation")
 
                   match parameters with

@@ -50,8 +50,7 @@ module CosmosCodeAnalysis =
 
     let (|Query|_|) =
         function
-        | Apply ("Cosmos.query", SynExpr.Const (SynConst.String (query, queryRange), constRange), range, appRange) ->
-            Some(query, constRange)
+        | Apply ("Cosmos.query", SynExpr.Const (SynConst.String (query, queryRange), constRange), range, appRange) -> Some(query, constRange)
         | _ -> None
 
     let (|LiteralQuery|_|) =
@@ -59,39 +58,73 @@ module CosmosCodeAnalysis =
         | Apply ("Cosmos.query", SynExpr.Ident (identifier), funcRange, appRange) -> Some(identifier.idText, funcRange)
         | _ -> None
 
+    let (|TypedQuery|_|) =
+        function
+        | SynExpr.App (exprAtomic,
+                       isInfix,
+                       (SynExpr.TypeApp (funcExpr, lessRange, typeNames, commasRange, greaterRange, typeArgsRange, typeAppRange)),
+                       SynExpr.Const (SynConst.String (query, queryRange), constRange),
+                       appRange) ->
+            match funcExpr with
+            | SynExpr.LongIdent (isOptional, longDotId, altName, identRange) ->
+                match longDotId with
+                | LongIdentWithDots (listOfIds, ranges) ->
+                    let fullName =
+                        listOfIds
+                        |> List.map (fun id -> id.idText)
+                        |> String.concat "."
+
+                    match fullName with
+                    | "Cosmos.query" ->
+                        let names =
+                            typeNames
+                            |> List.filter (fun typeName ->
+                                match typeName with
+                                | SynType.LongIdent (_) -> true
+                                | _ -> false)
+                            |> List.map (fun typeName ->
+                                match typeName with
+                                | SynType.LongIdent (dots) ->
+                                    match dots with
+                                    | LongIdentWithDots (listOfIds, _) ->
+                                        listOfIds
+                                        |> List.map (fun id -> id.idText)
+                                        |> String.concat "."
+                                | _ -> "")
+
+                        Some(names, query, typeAppRange)
+                    | _ -> None
+            | _ -> None
+        | _ -> None
+
     let (|Database|_|) =
         function
-        | Apply ("Cosmos.database", SynExpr.Const (SynConst.String (dbId, queryRange), constRange), range, appRange) ->
-            Some(dbId, constRange)
+        | Apply ("Cosmos.database", SynExpr.Const (SynConst.String (dbId, queryRange), constRange), range, appRange) -> Some(dbId, constRange)
         | _ -> None
 
     let (|LiteralDatabase|_|) =
         function
-        | Apply ("Cosmos.database", SynExpr.Ident (identifier), funcRange, appRange) ->
-            Some(identifier.idText, funcRange)
+        | Apply ("Cosmos.database", SynExpr.Ident (identifier), funcRange, appRange) -> Some(identifier.idText, funcRange)
         | _ -> None
 
     let (|Container|_|) =
         function
-        | Apply ("Cosmos.container", SynExpr.Const (SynConst.String (containerName, queryRange), constRange), range,
-                 appRange) -> Some(containerName, constRange)
+        | Apply ("Cosmos.container", SynExpr.Const (SynConst.String (containerName, queryRange), constRange), range, appRange) ->
+            Some(containerName, constRange)
         | _ -> None
 
     let (|LiteralContainer|_|) =
         function
-        | Apply ("Cosmos.container", SynExpr.Ident (identifier), funcRange, appRange) ->
-            Some(identifier.idText, funcRange)
+        | Apply ("Cosmos.container", SynExpr.Ident (identifier), funcRange, appRange) -> Some(identifier.idText, funcRange)
         | _ -> None
 
     let (|ParameterTuple|_|) =
         function
         | SynExpr.Tuple (isStruct,
-                         [ SynExpr.Const (SynConst.String (parameterName, paramRange), constRange);
-                           Apply (funcName, exprArgs, funcRange, appRange) ], commaRange, tupleRange) ->
-            Some(parameterName, paramRange, funcName, funcRange, Some appRange)
-        | SynExpr.Tuple (isStruct,
-                         [ SynExpr.Const (SynConst.String (parameterName, paramRange), constRange); secondItem ],
-                         commaRange, tupleRange) ->
+                         [ SynExpr.Const (SynConst.String (parameterName, paramRange), constRange); Apply (funcName, exprArgs, funcRange, appRange) ],
+                         commaRange,
+                         tupleRange) -> Some(parameterName, paramRange, funcName, funcRange, Some appRange)
+        | SynExpr.Tuple (isStruct, [ SynExpr.Const (SynConst.String (parameterName, paramRange), constRange); secondItem ], commaRange, tupleRange) ->
             match secondItem with
             | SynExpr.LongIdent (isOptional, longDotId, altName, identRange) ->
                 match longDotId with
@@ -122,8 +155,7 @@ module CosmosCodeAnalysis =
         function
         | Apply ("Cosmos.parameters", SynExpr.ArrayOrListOfSeqExpr (isArray, listExpr, listRange), funcRange, appRange) ->
             match listExpr with
-            | SynExpr.CompExpr (isArrayOfList, isNotNakedRefCell, compExpr, compRange) ->
-                Some(readParameters compExpr, compRange)
+            | SynExpr.CompExpr (isArrayOfList, isNotNakedRefCell, compExpr, compRange) -> Some(readParameters compExpr, compRange)
             | _ -> None
         | _ -> None
 
@@ -131,6 +163,7 @@ module CosmosCodeAnalysis =
         function
         | Query (query, range) -> [ CosmosAnalyzerBlock.Query(query, range) ]
         | LiteralQuery (identifier, range) -> [ CosmosAnalyzerBlock.LiteralQuery(identifier, range) ]
+        | TypedQuery (typeNames, query, typeAppRange) -> [ CosmosAnalyzerBlock.Query(query, typeAppRange) ]
         | SynExpr.App (exprAtomic, isInfix, funcExpr, argExpr, range) ->
             [ yield! findQuery funcExpr
               yield! findQuery argExpr ]
@@ -262,8 +295,8 @@ module CosmosCodeAnalysis =
 
     and visitBinding (binding: SynBinding): CosmosOperation list =
         match binding with
-        | SynBinding.Binding (access, kind, mustInline, isMutable, attrs, xmlDecl, valData, headPat, returnInfo, expr,
-                              range, seqPoint) -> visitSyntacticExpression expr range
+        | SynBinding.Binding (access, kind, mustInline, isMutable, attrs, xmlDecl, valData, headPat, returnInfo, expr, range, seqPoint) ->
+            visitSyntacticExpression expr range
 
 
     let findOperations (ctx: Context) =
