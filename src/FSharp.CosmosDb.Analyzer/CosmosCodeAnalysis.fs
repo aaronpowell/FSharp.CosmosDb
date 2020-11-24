@@ -5,20 +5,23 @@ open FSharp.Compiler.Range
 open FSharp.Compiler.SyntaxTree
 
 module CosmosCodeAnalysis =
+
     let dotConcat = List.map(fun (id:Ident) -> id.idText) >> String.concat "."
+
+    let checkIfApply funcExpr argExpr range =
+        match funcExpr with
+        | SynExpr.Ident ident ->
+            Some(ident.idText, argExpr, funcExpr.Range, range)
+        | SynExpr.LongIdent (_, LongIdentWithDots (listOfIds, _), _, _) ->
+            Some(dotConcat listOfIds, argExpr, funcExpr.Range, range)
+        | _ ->
+            None
+
     let (|Apply|_|) synExpr =
         match synExpr with
-        | SynExpr.TypeApp (funcExpr, _, _, _, _, _, range) -> Some (funcExpr, funcExpr, range)
-        | SynExpr.App (_, _, funcExpr, argExpr, range) -> Some (funcExpr, argExpr, range)
+        | SynExpr.TypeApp (funcExpr, _, _, _, _, _, range) -> checkIfApply funcExpr funcExpr range
+        | SynExpr.App (_, _, funcExpr, argExpr, range) -> checkIfApply funcExpr argExpr range
         | _ -> None
-        |> Option.bind(fun (funcExpr, argExpr, range) ->
-            match funcExpr with
-            | SynExpr.Ident ident ->
-                Some(ident.idText, argExpr, funcExpr.Range, range)
-            | SynExpr.LongIdent (_, LongIdentWithDots (listOfIds, _), _, _) ->
-                Some(dotConcat listOfIds, argExpr, funcExpr.Range, range)
-            | _ ->
-                None)
 
     let (|LongIdent|_|) =
         function
@@ -39,21 +42,11 @@ module CosmosCodeAnalysis =
 
     let (|TypedQuery|_|) synExpr =
         match synExpr with
-        | SynExpr.App (_, _, (SynExpr.TypeApp (funcExpr, _, typeNames, _, _, _, typeAppRange)), SynExpr.Const (SynConst.String (query, _), _), _) ->
-            Some {| FuncExpr = funcExpr; TypeNames = typeNames; Range = typeAppRange; Query = query |}
-        | _ ->
-            None
-        |> Option.bind(fun args ->
-            match args.FuncExpr with
-            | SynExpr.LongIdent (_, LongIdentWithDots (listOfIds, _), _, _) ->
-                Some {| args with Ids = listOfIds |}
-            | _ ->
-                None)
-        |> Option.bind(fun args ->
-            match dotConcat args.Ids with
+        | SynExpr.App (_, _, (SynExpr.TypeApp (SynExpr.LongIdent (_, LongIdentWithDots (listOfIds, _), _, _), _, typeNames, _, _, _, typeAppRange)), SynExpr.Const (SynConst.String (query, _), _), _) ->
+            match dotConcat listOfIds with
             | "Cosmos.query" ->
                 let names =
-                    args.TypeNames
+                    typeNames
                     |> List.choose (fun typeName ->
                         match typeName with
                         | SynType.LongIdent (LongIdentWithDots (listOfIds, _)) ->
@@ -61,9 +54,10 @@ module CosmosCodeAnalysis =
                         | _ ->
                             None)
 
-                Some(names, args.Query, args.Range)
-            | _ ->
-                None)
+                Some(names, query, typeAppRange)
+            | _ -> None
+        | _ ->
+            None
 
     let (|Database|_|) =
         function
