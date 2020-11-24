@@ -50,12 +50,7 @@ module CosmosCodeAnalysis =
             | _ ->
                 None)
         |> Option.bind(fun args ->
-            let fullName =
-                args.Ids
-                |> List.map (fun id -> id.idText)
-                |> String.concat "."
-
-            match fullName with
+            match dotConcat args.Ids with
             | "Cosmos.query" ->
                 let names =
                     args.TypeNames
