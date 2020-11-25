@@ -5,48 +5,30 @@ open FSharp.Compiler.Range
 open FSharp.Compiler.SyntaxTree
 
 module CosmosCodeAnalysis =
-    let (|Apply|_|) =
-        function
-        | SynExpr.TypeApp (funcExpr, lessRange, typeNames, commasRange, greaterRange, typeArgsRange, range) ->
-            match funcExpr with
-            | SynExpr.Ident ident -> Some(ident.idText, funcExpr, funcExpr.Range, range)
-            | SynExpr.LongIdent (isOptional, longDotId, altName, identRange) ->
-                match longDotId with
-                | LongIdentWithDots (listOfIds, ranges) ->
-                    let fullName =
-                        listOfIds
-                        |> List.map (fun id -> id.idText)
-                        |> String.concat "."
 
-                    Some(fullName, funcExpr, funcExpr.Range, range)
-            | _ -> None
-        | SynExpr.App (atomicFlag, isInfix, funcExpr, argExpr, applicationRange) ->
-            match funcExpr with
-            | SynExpr.Ident ident -> Some(ident.idText, argExpr, funcExpr.Range, applicationRange)
-            | SynExpr.LongIdent (isOptional, longDotId, altName, identRange) ->
-                match longDotId with
-                | LongIdentWithDots (listOfIds, ranges) ->
-                    let fullName =
-                        listOfIds
-                        |> List.map (fun id -> id.idText)
-                        |> String.concat "."
+    let dotConcat = List.map(fun (id:Ident) -> id.idText) >> String.concat "."
 
-                    Some(fullName, argExpr, funcExpr.Range, applicationRange)
-            | _ -> None
+    let checkIfApply funcExpr argExpr range =
+        match funcExpr with
+        | SynExpr.Ident ident ->
+            Some(ident.idText, argExpr, funcExpr.Range, range)
+        | SynExpr.LongIdent (_, LongIdentWithDots (listOfIds, _), _, _) ->
+            Some(dotConcat listOfIds, argExpr, funcExpr.Range, range)
+        | _ ->
+            None
+
+    let (|Apply|_|) synExpr =
+        match synExpr with
+        | SynExpr.TypeApp (funcExpr, _, _, _, _, _, range) -> checkIfApply funcExpr funcExpr range
+        | SynExpr.App (_, _, funcExpr, argExpr, range) -> checkIfApply funcExpr argExpr range
         | _ -> None
 
     let (|LongIdent|_|) =
         function
-        | SynExpr.LongIdent (isOptional, longDotId, altName, identRange) ->
-            match longDotId with
-            | LongIdentWithDots (listOfIds, ranges) ->
-                let fullName =
-                    listOfIds
-                    |> List.map (fun id -> id.idText)
-                    |> String.concat "."
-
-                Some(fullName, range)
-        | _ -> None
+        | SynExpr.LongIdent (isOptional, LongIdentWithDots (listOfIds, ranges), altName, identRange) ->
+            Some(dotConcat listOfIds, range)
+        | _ ->
+            None
 
     let (|Query|_|) =
         function
@@ -58,44 +40,24 @@ module CosmosCodeAnalysis =
         | Apply ("Cosmos.query", SynExpr.Ident (identifier), funcRange, appRange) -> Some(identifier.idText, funcRange)
         | _ -> None
 
-    let (|TypedQuery|_|) =
-        function
-        | SynExpr.App (exprAtomic,
-                       isInfix,
-                       (SynExpr.TypeApp (funcExpr, lessRange, typeNames, commasRange, greaterRange, typeArgsRange, typeAppRange)),
-                       SynExpr.Const (SynConst.String (query, queryRange), constRange),
-                       appRange) ->
-            match funcExpr with
-            | SynExpr.LongIdent (isOptional, longDotId, altName, identRange) ->
-                match longDotId with
-                | LongIdentWithDots (listOfIds, ranges) ->
-                    let fullName =
-                        listOfIds
-                        |> List.map (fun id -> id.idText)
-                        |> String.concat "."
+    let (|TypedQuery|_|) synExpr =
+        match synExpr with
+        | SynExpr.App (_, _, (SynExpr.TypeApp (SynExpr.LongIdent (_, LongIdentWithDots (listOfIds, _), _, _), _, typeNames, _, _, _, typeAppRange)), SynExpr.Const (SynConst.String (query, _), _), _) ->
+            match dotConcat listOfIds with
+            | "Cosmos.query" ->
+                let names =
+                    typeNames
+                    |> List.choose (fun typeName ->
+                        match typeName with
+                        | SynType.LongIdent (LongIdentWithDots (listOfIds, _)) ->
+                            dotConcat listOfIds |> Some
+                        | _ ->
+                            None)
 
-                    match fullName with
-                    | "Cosmos.query" ->
-                        let names =
-                            typeNames
-                            |> List.filter (fun typeName ->
-                                match typeName with
-                                | SynType.LongIdent (_) -> true
-                                | _ -> false)
-                            |> List.map (fun typeName ->
-                                match typeName with
-                                | SynType.LongIdent (dots) ->
-                                    match dots with
-                                    | LongIdentWithDots (listOfIds, _) ->
-                                        listOfIds
-                                        |> List.map (fun id -> id.idText)
-                                        |> String.concat "."
-                                | _ -> "")
-
-                        Some(names, query, typeAppRange)
-                    | _ -> None
+                Some(names, query, typeAppRange)
             | _ -> None
-        | _ -> None
+        | _ ->
+            None
 
     let (|Database|_|) =
         function
