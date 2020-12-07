@@ -1,0 +1,55 @@
+name: CI build
+
+env:
+  OUTPUT_PATH: ${{ github.workspace }}/.nupkg
+  DOTNET_VERSION: "3.1.100"
+  GITHUB_SOURCE: "https://nuget.pkg.github.com/aaronpowell/index.json"
+  CONFIGURATION: "Debug"
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Dotnet ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dotnet tools
+        run: dotnet tool restore
+
+      - name: Generate packages
+        run: dotnet fake run ./build.fsx --target Release
+
+      - name: Publish release packages
+        uses: actions/upload-artifact@v1
+        with:
+          name: packages
+          path: ${{ env.OUTPUT_PATH }}
+
+  publish-github:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: packages
+          path: ${{ env.OUTPUT_PATH }}
+
+      - name: Setup .NET Core ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Publish
+        run: dotnet nuget push --api-key ${{ secrets.GITHUB_TOKEN }} --source ${{ env.GITHUB_SOURCE }} "*.nupkg"
+        working-directory: ${{ env.OUTPUT_PATH }}
