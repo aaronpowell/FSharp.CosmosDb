@@ -1,6 +1,18 @@
 # Changelog for `FSharp.CosmosDb`
 
-## [0.2.0]
+## [0.3.0]
+
+### Added
+
+- New CI/CD pipeline
+- Primitive support for pagination [#23](https://github.com/aaronpowell/FSharp.CosmosDb/issues/23)
+
+## Changed
+
+- Upgraded a lot of dependencies
+- Analyzer attempts to discover connection information from appsettings.json and appsettings.Development.json
+
+## [0.2.0] - 2020-04-25
 
 ### Added
 
