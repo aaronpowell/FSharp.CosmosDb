@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <Description>An F# analyzer that will help you work with CosmosDB.</Description>
   </PropertyGroup>
 
   <ItemGroup>
