@@ -68,6 +68,14 @@ module Cosmos =
     let insert<'T> (value: 'T) op =
         Insert { Connection = op; Values = [ value ] }
 
+    // --- INSERT --- //
+
+    let upsertMany<'T> (values: 'T list) op =
+        Upsert { Connection = op; Values = values }
+
+    let upsert<'T> (value: 'T) op =
+        Upsert { Connection = op; Values = [ value ] }
+
     // --- UPDATE --- //
 
     let update<'T> id partitionKey (updater: 'T -> 'T) op =
@@ -116,6 +124,7 @@ module Cosmos =
         | Insert op -> OperationHandling.execInsert getClient op
         | Update op -> OperationHandling.execUpdate getClient op
         | Delete op -> OperationHandling.execDelete getClient op
+        | Upsert op -> OperationHandling.execUpsert getClient op
 
     let execBatchAsync<'T> (op: ContainerOperation<'T>) =
         match op with

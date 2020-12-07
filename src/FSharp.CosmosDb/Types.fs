@@ -21,6 +21,10 @@ type InsertOp<'T> =
     { Connection: ConnectionOperation
       Values: 'T list }
 
+type UpsertOp<'T> =
+    { Connection: ConnectionOperation
+      Values: 'T list }
+
 type UpdateOp<'T> =
     { Connection: ConnectionOperation
       Id: string
@@ -37,3 +41,4 @@ type ContainerOperation<'T> =
     | Insert of InsertOp<'T>
     | Update of UpdateOp<'T>
     | Delete of DeleteOp<'T>
+    | Upsert of UpsertOp<'T>

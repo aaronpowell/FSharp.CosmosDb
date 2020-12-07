@@ -38,6 +38,22 @@ let insertUsers data =
     |> Cosmos.execAsync
 ```
 
+### Upsert
+
+```fsharp
+open FSharp.CosmosDb
+
+let connStr = "..."
+
+let insertUsers data =
+    connStr
+    |> Cosmos.fromConnectionString
+    |> Cosmos.database "UserDb"
+    |> Cosmos.container "UserContainer"
+    |> Cosmos.upsertMany<User> data
+    |> Cosmos.execAsync
+```
+
 ### Update
 
 ```fsharp
@@ -173,3 +189,4 @@ Add the following settings (globally or in the workspace):
 
 - Zaid Ajaj for the [Npgsql Analyzer](https://github.com/Zaid-Ajaj/Npgsql.FSharp.Analyzer). Without this I wouldn't have been able to work out how to do it (and there's some code lifted from there)
 - [Krzysztof Cieślak](https://twitter.com/k_cieslak) for the amazing Ionide plugin
+- [Isaac Abraham](https://twitter.com/isaac_abraham) for helping fix the parser

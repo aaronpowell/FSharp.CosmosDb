@@ -6,6 +6,7 @@
 
 - New CI/CD pipeline
 - Primitive support for pagination [#23](https://github.com/aaronpowell/FSharp.CosmosDb/issues/23)
+- Upsert support [#43](https://github.com/aaronpowell/FSharp.CosmosDb/issues/43)
 
 ### Changed
 
