@@ -33,7 +33,7 @@ let getVersionNumber (changeLog: Changelog.ChangelogEntry) (targets: Target list
     match GitHubActions.Environment.CI false, isRelease targets with
     | (true, true) -> changeLog.NuGetVersion
     | (true, false) -> sprintf "%s-ci-%s" changeLog.NuGetVersion GitHubActions.Environment.RunId
-    | (_, _) -> changeLog.NuGetVersion
+    | (_, _) -> sprintf "%s-local" changeLog.NuGetVersion
 
 Target.create "Clean" (fun _ ->
     DotNet.exec id "clean" "" |> ignore
@@ -106,6 +106,7 @@ Target.create "RunAnalyzer" (fun ctx ->
 
 Target.create "Default" ignore
 Target.create "Release" ignore
+Target.create "CI" ignore
 
 "Clean" ==> "Restore" ==> "Build" ==> "Default"
 
@@ -115,6 +116,13 @@ Target.create "Release" ignore
 ==> "Package"
 ==> "Changelog"
 ==> "Release"
+
+"Default"
+==> "Publish"
+==> "Test"
+==> "Package"
+==> "Changelog"
+==> "CI"
 
 "Default" ==> "Publish" ==> "RunAnalyzer"
 

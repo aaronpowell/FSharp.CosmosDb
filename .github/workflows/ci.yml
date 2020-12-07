@@ -27,7 +27,7 @@ jobs:
         run: dotnet tool restore
 
       - name: Generate packages
-        run: dotnet fake run ./build.fsx --target Release
+        run: dotnet fake run ./build.fsx --target CI
 
       - name: Publish release packages
         uses: actions/upload-artifact@v1

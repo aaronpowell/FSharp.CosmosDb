@@ -7,7 +7,7 @@
 - New CI/CD pipeline
 - Primitive support for pagination [#23](https://github.com/aaronpowell/FSharp.CosmosDb/issues/23)
 
-## Changed
+### Changed
 
 - Upgraded a lot of dependencies
 - Analyzer attempts to discover connection information from appsettings.json and appsettings.Development.json

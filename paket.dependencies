@@ -1,5 +1,5 @@
+version 5.242.2
 framework: netstandard2.0, netcoreapp3.1, netcoreapp2.0
-version: 5.242.2
 
 source https://www.nuget.org/api/v2
 source https://api.nuget.org/v3/index.json
@@ -16,7 +16,7 @@ nuget Microsoft.Extensions.Configuration.Json
 nuget Expecto 8.13.1
 nuget YoloDev.Expecto.TestSdk 0.8.0
 nuget Microsoft.NET.Test.Sdk 16.5.0
-nuget Microsoft.SourceLink.GitHub prerelease copy_local: true
+nuget Microsoft.SourceLink.GitHub copy_local: true
 nuget Microsoft.NETFramework.ReferenceAssemblies copy_local: true
 nuget FSharp.SystemTextJson 0.10.25
 
