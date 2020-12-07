@@ -1,17 +1,15 @@
-name: CI build
+name: Release build
 
 env:
   OUTPUT_PATH: ${{ github.workspace }}/.nupkg
   DOTNET_VERSION: "3.1.100"
   GITHUB_SOURCE: "https://nuget.pkg.github.com/aaronpowell/index.json"
-  CONFIGURATION: "Debug"
+  NUGET_SOURCE: "https://api.nuget.org/v3/index.json"
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
+    tags:
+      - v* #version is cut
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -53,4 +51,23 @@ jobs:
 
       - name: Publish
         run: dotnet nuget push --api-key ${{ secrets.GITHUB_TOKEN }} --source ${{ env.GITHUB_SOURCE }} "FSharp.CosmosDB*.nupkg"
+        working-directory: ${{ env.OUTPUT_PATH }}
+
+  publish-nuget:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: packages
+          path: ${{ env.OUTPUT_PATH }}
+
+      - name: Setup .NET Core ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Publish
+        run: dotnet nuget push --api-key ${{ secrets.NUGET_KEY }} --source ${{ env.NUGET_SOURCE }} "FSharp.CosmosDB*.nupkg"
         working-directory: ${{ env.OUTPUT_PATH }}
