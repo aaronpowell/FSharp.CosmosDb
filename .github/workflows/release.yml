@@ -34,6 +34,70 @@ jobs:
           name: packages
           path: ${{ env.OUTPUT_PATH }}
 
+  publish-release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: packages
+          path: ${{ env.OUTPUT_PATH }}
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+          body_path: changelog.md
+      - name: Upload NuGet package
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: FSharp.CosmosDb.${{ github.ref }}.nupkg
+          asset_name: FSharp.CosmosDb.${{ github.ref }}.nupkg
+          asset_content_type: application/zip
+
+      - name: Upload NuGet package (analyzer)
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: FSharp.CosmosDb.Analyzer.${{ github.ref }}.nupkg
+          asset_name: FSharp.CosmosDb.Analyzer.${{ github.ref }}.nupkg
+          asset_content_type: application/zip
+
+      - name: Upload NuGet symbol package
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: FSharp.CosmosDb.${{ github.ref }}.snupkg
+          asset_name: FSharp.CosmosDb.${{ github.ref }}.snupkg
+          asset_content_type: application/zip
+
+      - name: Upload NuGet symbol package (analyzer)
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: FSharp.CosmosDb.Analyzer.${{ github.ref }}.snupkg
+          asset_name: FSharp.CosmosDb.Analyzer.${{ github.ref }}.snupkg
+          asset_content_type: application/zip
+
   publish-github:
     needs: build
     runs-on: ubuntu-latest
