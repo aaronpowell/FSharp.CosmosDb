@@ -8,3 +8,4 @@ build.fsx.lock
 .nupkg
 node_modules
 dist
+debug.log

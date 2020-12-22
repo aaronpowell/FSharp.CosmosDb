@@ -1,5 +1,12 @@
 # Changelog for `FSharp.CosmosDb`
 
+## [0.4.0]
+
+### Changed
+
+- Support for Ionide 5
+- Updated FSAC
+
 ## [0.3.0] - 2020-12-21
 
 ### Added

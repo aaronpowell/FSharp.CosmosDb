@@ -6,7 +6,7 @@ open Expecto.Logging
 let config =
     { defaultConfig with
           verbosity = Verbose
-          ``parallel`` = false }
+          runInParallel = false }
 
 [<EntryPoint>]
 let main argv = runTestsInAssembly config argv
