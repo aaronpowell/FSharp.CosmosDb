@@ -4,3 +4,4 @@ FSharp.Compiler.Service
 Azure.Cosmos
 FSharp.Control.AsyncSeq
 FSharp.SystemTextJson
+Azure.Core

@@ -3,5 +3,4 @@ FSharp.Core
 FSharp.Analyzers.SDK
 FSharp.Compiler.Service
 Microsoft.NETFramework.ReferenceAssemblies
-YoloDev.Expecto.TestSdk
 Microsoft.NET.Test.Sdk
