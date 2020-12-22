@@ -94,7 +94,14 @@ Target.create "SetVersionForCI" (fun _ ->
     let changelog = getChangelog ()
     printfn "::set-env name=package_version::%s" changelog.NuGetVersion)
 
-Target.create "Test" (fun _ -> DotNet.test id sln)
+Target.create "Test" (fun _ ->
+    DotNet.exec (fun p ->
+        { p with
+              Timeout = Some(System.TimeSpan.FromMinutes 10.) }) "run"
+        """--project "./tests/FSharp.CosmosDb.Analyzer.Tests/FSharp.CosmosDb.Analyzer.Tests.fsproj" -- --fail-on-focused-tests --debug --summary"""
+    |> fun r ->
+        if not r.OK
+        then failwithf "Errors while running LSP tests:\n%s" (r.Errors |> String.concat "\n\t"))
 
 Target.create "RunAnalyzer" (fun ctx ->
     let args =
