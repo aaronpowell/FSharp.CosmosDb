@@ -53,7 +53,7 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
-          body_path: changelog.md
+          body_path: ${{ env.OUTPUT_PATH }}/changelog.md
       - name: Upload NuGet package
         uses: actions/upload-release-asset@v1
         env:
