@@ -5,19 +5,19 @@ storage: none
 nuget FSharp.Analyzers.SDK
 nuget FSharp.Compiler.Service 38.0.0
 nuget Azure.Cosmos 4.0.0-preview3 preview
-nuget FSharp.Control.AsyncSeq 2.0.24
+nuget FSharp.Control.AsyncSeq
 nuget System.Json
 nuget Microsoft.Extensions.Configuration
 nuget Microsoft.Extensions.Configuration.Json
 nuget Expecto
-nuget YoloDev.Expecto.TestSdk 0.9.2
+nuget YoloDev.Expecto.TestSdk
 nuget Microsoft.NET.Test.Sdk 16.8.3
 nuget Microsoft.SourceLink.GitHub copy_local: true
 nuget Microsoft.NETFramework.ReferenceAssemblies copy_local: true
 nuget Microsoft.Build
 nuget Microsoft.Build.Framework
 nuget Microsoft.Build.Utilities.Core
-nuget FSharp.SystemTextJson 0.10.25
+nuget FSharp.SystemTextJson
 
 // [ FAKE GROUP ]
 group Build
