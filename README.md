@@ -84,7 +84,7 @@ let findUsers() =
     |> Cosmos.database "UserDb"
     |> Cosmos.container "UserContainer"
     |> Cosmos.query "SELECT u.FirstName, u.LastName FROM u WHERE u.LastName = @name"
-    |> Cosmos.parameters [ "name", box "Powell" ]
+    |> Cosmos.parameters [ "@name", box "Powell" ]
     |> Cosmos.execAsync<User>
 ```
 
