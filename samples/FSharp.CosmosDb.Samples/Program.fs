@@ -6,15 +6,12 @@ open FSharp.Control
 open Microsoft.Extensions.Configuration
 open System.IO
 
-[<CLIMutable>]
 type Parent =
     { FamilyName: string
       FirstName: string }
 
-[<CLIMutable>]
 type Pet = { GivenName: string }
 
-[<CLIMutable>]
 type Child =
     { FamilyName: string
       FirstName: string
@@ -22,13 +19,11 @@ type Child =
       Grade: int
       Pets: Pet array }
 
-[<CLIMutable>]
 type Address =
     { State: string
       Country: string
       City: string }
 
-[<CLIMutable>]
 type Family =
     { [<JsonPropertyName("id")>]
       Id: string
@@ -107,15 +102,15 @@ let main argv =
     let config = builder.Build()
 
     async {
-        // let host = config.["CosmosConnection:Host"]
-        // let key = config.["CosmosConnection:Key"]
-        // let conn = getFamiliesConnection host key
+        let host = config.["CosmosConnection:Host"]
+        let key = config.["CosmosConnection:Key"]
+        let conn = getFamiliesConnection host key
 
-        let connectionString =
-            config.["CosmosConnection:ConnectionString"]
+        // let connectionString =
+        //     config.["CosmosConnection:ConnectionString"]
 
-        let conn =
-            getFamiliesConnectionFromConnString connectionString
+        // let conn =
+        //     getFamiliesConnectionFromConnString connectionString
 
         let families =
             [| { Id = "Powell.1"
