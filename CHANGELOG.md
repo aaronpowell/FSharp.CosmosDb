@@ -1,5 +1,17 @@
 # Changelog for `FSharp.CosmosDb`
 
+## [0.5.0] - Unreleased
+
+### Added
+
+- New `IdAttribute` for marking the ID field of the records
+- New API methods for doing `read` and `replace` operations with API
+
+### Changed
+
+- Improved the PartitionKey detection logic
+- Dependency upgrades across the board
+
 ## [0.4.0] - 2020-12-22
 
 ### Changed
