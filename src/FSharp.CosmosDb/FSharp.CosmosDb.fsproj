@@ -3,15 +3,14 @@
     <TargetFramework>net5.0</TargetFramework>
     <Description>An F# friendly approach to working with CosmosDB.</Description>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="../shared/AsyncSeqExt.fs" />
     <Compile Include="../shared/MaybeBinder.fs" />
+    <Compile Include="IdAttribute.fs" />
     <Compile Include="PartitionKeyAttribute.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="OperationHandling.fs" />
     <Compile Include="Cosmos.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
-
 </Project>

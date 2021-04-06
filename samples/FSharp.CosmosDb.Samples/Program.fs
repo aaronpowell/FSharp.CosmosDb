@@ -1,7 +1,6 @@
 ﻿module FSharp.CosmosDb.Samples
 
 open FSharp.CosmosDb
-open System.Text.Json.Serialization
 open FSharp.Control
 open Microsoft.Extensions.Configuration
 open System.IO
@@ -25,7 +24,7 @@ type Address =
       City: string }
 
 type Family =
-    { [<JsonPropertyName("id")>]
+    { [<Id>]
       Id: string
       [<PartitionKey>]
       LastName: string
@@ -149,6 +148,15 @@ let main argv =
         do!
             deletePowell
             |> AsyncSeq.iter (fun f -> printfn "Deleted: %A" f)
+
+
+        do!
+            conn
+            |> Cosmos.query "SELECT * FROM c"
+            |> Cosmos.execAsync<Family>
+            |> AsyncSeq.map (fun f -> { f with LastName = "Powellz" })
+            |> AsyncSeq.map (fun f -> conn |> Cosmos.replace f |> Cosmos.execAsync)
+            |> AsyncSeq.iter (fun f -> printfn "Replaced: %A" f)
 
         return 0 // return an integer exit code
     }

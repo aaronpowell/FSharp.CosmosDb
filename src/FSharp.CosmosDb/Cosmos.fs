@@ -57,7 +57,10 @@ module Cosmos =
 
     let parameters arr op =
         match op with
-        | Query q -> Query { q with Parameters = arr }
+        | Query q ->
+            Query
+                { q with
+                      Parameters = q.Parameters @ arr }
         | _ -> failwith "Only the Query discriminated union supports parameters"
 
     // --- INSERT --- //
@@ -93,6 +96,20 @@ module Cosmos =
               Id = id
               PartitionKey = partitionKey }
 
+
+    // --- READ --- //
+
+    let read id partitionKey op =
+        Read
+            { Connection = op
+              Id = id
+              PartitionKey = partitionKey }
+
+    // --- REPLACE --- //
+
+    let replace<'T> (item: 'T) op =
+        Replace { Connection = op; Item = item }
+
     // --- Execute --- //
 
     let private getClient connInfo =
@@ -125,6 +142,8 @@ module Cosmos =
         | Update op -> OperationHandling.execUpdate getClient op
         | Delete op -> OperationHandling.execDelete getClient op
         | Upsert op -> OperationHandling.execUpsert getClient op
+        | Read op -> OperationHandling.execRead getClient op
+        | Replace op -> OperationHandling.execReplace getClient op
 
     let execBatchAsync<'T> (op: ContainerOperation<'T>) =
         match op with

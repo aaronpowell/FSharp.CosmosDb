@@ -36,9 +36,20 @@ type DeleteOp<'T> =
       Id: string
       PartitionKey: string }
 
+type ReadOp<'T> =
+    { Connection: ConnectionOperation
+      Id: string
+      PartitionKey: string }
+
+type ReplaceOp<'T> =
+    { Connection: ConnectionOperation
+      Item: 'T }
+
 type ContainerOperation<'T> =
     | Query of QueryOp<'T>
     | Insert of InsertOp<'T>
     | Update of UpdateOp<'T>
     | Delete of DeleteOp<'T>
     | Upsert of UpsertOp<'T>
+    | Read of ReadOp<'T>
+    | Replace of ReplaceOp<'T>
