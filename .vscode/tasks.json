@@ -25,11 +25,7 @@
       "label": "publish",
       "command": "dotnet",
       "type": "shell",
-      "args": [
-        "publish",
-        "/property:GenerateFullPaths=true",
-        "/consoleloggerparameters:NoSummary"
-      ],
+      "args": ["fake", "run", "./build.fsx", "--target", "CI"],
       "presentation": {
         "reveal": "silent"
       },

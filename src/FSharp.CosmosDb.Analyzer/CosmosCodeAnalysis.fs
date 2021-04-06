@@ -1,7 +1,7 @@
 namespace FSharp.CosmosDb.Analyzer
 
 open FSharp.Analyzers.SDK
-open FSharp.Compiler.Range
+open FSharp.Compiler.Text
 open FSharp.Compiler.SyntaxTree
 
 module CosmosCodeAnalysis =

@@ -1,6 +1,6 @@
 namespace FSharp.CosmosDb.Analyzer
 
-open FSharp.Compiler.Range
+open FSharp.Compiler.Text
 
 type UsedParameter =
     { name: string
