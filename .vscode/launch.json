@@ -15,7 +15,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/tests/FSharp.CosmosDb.Analyzer.Tests/bin/Debug/netcoreapp3.1/FSharp.CosmosDb.Analyzer.Tests.dll",
+      "program": "${workspaceFolder}/tests/FSharp.CosmosDb.Analyzer.Tests/bin/Debug/net5.0/FSharp.CosmosDb.Analyzer.Tests.dll",
       "args": [],
       "cwd": "${workspaceFolder}",
       "stopAtEntry": false,
