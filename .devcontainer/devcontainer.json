@@ -1,0 +1,40 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.166.0/containers/dotnet-fsharp
+{
+	"name": "FSharp.CosmosDB",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": {
+			// Options
+			"INSTALL_NODE": "false",
+			"NODE_VERSION": "lts/*",
+			"INSTALL_AZURE_CLI": "true",
+			"UPGRADE_PACKAGES": "false"
+		}
+	},
+
+	"settings": {
+		"terminal.integrated.shell.linux": "/bin/bash"
+	},
+
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"Ionide.Ionide-fsharp",
+		"ms-dotnettools.csharp",
+		"ms-vscode.azure-account",
+		"ionide.ionide-fake",
+		"ionide.ionide-paket",
+		"github.vscode-pull-request-github",
+		"paolodellepiane.fantomas-fmt",
+		"ms-azuretools.vscode-cosmosdb"
+	],
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "dotnet tool restore && dotnet restore",
+
+	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "vscode"
+}
