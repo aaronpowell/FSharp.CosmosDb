@@ -168,7 +168,7 @@ If `CosmosConnection.ConnectionString` exists, it will be used, otherwise it wil
 
 ### 2. Install the Analyzer from paket
 
-`paket add FSharp.Cosmos.Analyzer --group Analyzers`
+`paket add FSharp.CosmosDb.Analyzer --group Analyzers`
 
 ### 3. Enable Analyzers in Ionide
 
