@@ -43,8 +43,8 @@ let getFamiliesConnection host key =
 let getFamiliesConnectionFromConnString connectionString =
     connectionString
     |> Cosmos.fromConnectionString
-    |> Cosmos.database "FamilyDatabase"
-    |> Cosmos.container "FamilyContainer"
+    |> Cosmos.database "FamiliesDatabase"
+    |> Cosmos.container "FamiliesContainer"
 
 let insertFamilies<'T> conn (families: 'T list) =
     conn

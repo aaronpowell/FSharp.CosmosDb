@@ -3,7 +3,6 @@
     <TargetFramework>net5.0</TargetFramework>
     <Description>An F# analyzer that will help you work with CosmosDB.</Description>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="Types.fs" />
     <Compile Include="../shared/AsyncSeqExt.fs" />

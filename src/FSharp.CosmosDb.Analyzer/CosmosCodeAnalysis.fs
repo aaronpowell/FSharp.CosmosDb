@@ -56,10 +56,11 @@ module CosmosCodeAnalysis =
             | "Cosmos.query" ->
                 let names =
                     typeNames
-                    |> List.choose (fun typeName ->
-                        match typeName with
-                        | SynType.LongIdent (LongIdentWithDots (listOfIds, _)) -> dotConcat listOfIds |> Some
-                        | _ -> None)
+                    |> List.choose
+                        (fun typeName ->
+                            match typeName with
+                            | SynType.LongIdent (LongIdentWithDots (listOfIds, _)) -> dotConcat listOfIds |> Some
+                            | _ -> None)
 
                 Some(names, query, typeAppRange)
             | _ -> None
@@ -165,12 +166,13 @@ module CosmosCodeAnalysis =
         | Parameters (parameters, range) ->
             let queryParams =
                 parameters
-                |> List.map (fun (name, range, func, funcRange, appRange) ->
-                    { name = name.TrimStart('@')
-                      range = range
-                      paramFunc = func
-                      paramFuncRange = funcRange
-                      applicationRange = appRange })
+                |> List.map
+                    (fun (name, range, func, funcRange, appRange) ->
+                        { name = name
+                          range = range
+                          paramFunc = func
+                          paramFuncRange = funcRange
+                          applicationRange = appRange })
 
             [ CosmosAnalyzerBlock.Parameters(queryParams, range) ]
 
@@ -219,12 +221,13 @@ module CosmosCodeAnalysis =
             | Parameters (parameters, _) ->
                 let queryParams =
                     parameters
-                    |> List.map (fun (name, range, func, funcRange, appRange) ->
-                        { name = name.TrimStart('@')
-                          range = range
-                          paramFunc = func
-                          paramFuncRange = funcRange
-                          applicationRange = appRange })
+                    |> List.map
+                        (fun (name, range, func, funcRange, appRange) ->
+                            { name = name.TrimStart('@')
+                              range = range
+                              paramFunc = func
+                              paramFuncRange = funcRange
+                              applicationRange = appRange })
 
                 let blocks =
                     [ yield! findQuery funcExpr
@@ -266,13 +269,14 @@ module CosmosCodeAnalysis =
 
         | _ -> []
 
-    and visitBinding (binding: SynBinding): CosmosOperation list =
+    and visitBinding (binding: SynBinding) : CosmosOperation list =
         match binding with
         | Binding (_, _, _, _, _, _, _, _, _, expr, range, _) -> visitSyntacticExpression expr range
 
 
     let findOperations (ctx: Context) =
         let operations = ResizeArray<CosmosOperation>()
+
         match ctx.ParseTree with
         | ParsedInput.ImplFile input ->
             match input with

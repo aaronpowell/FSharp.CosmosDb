@@ -150,9 +150,15 @@ module CosmosCodeAnalyzer =
             | CosmosAnalyzerBlock.Query (query, range) -> (query, range)
             | _ -> failwith "No query operation")
 
-    let analyzeParameters operation (parameters: UsedParameter list) (parametersRange: range) =
+    let analyzeParameters operation (suppliedParameters: UsedParameter list) (parametersRange: range) =
         match findQuery operation with
         | Some (query, queryRange) ->
+            let cleanParamName (name: string) = name.Replace("\"", "")
+
+            let suppliedParameterNames =
+                suppliedParameters
+                |> List.map (fun p -> cleanParamName p.name)
+
             let paramsInQuery =
                 Regex.Matches(query, "@(\\w+)")
                 |> Seq.cast<Match>
@@ -161,23 +167,18 @@ module CosmosCodeAnalyzer =
                         m.Groups
                         |> Seq.cast<Group>
                         |> Seq.skip 1
-                        |> Seq.map (fun g -> g.Value))
+                        |> Seq.map (fun g -> sprintf "@%s" g.Value))
                 |> Seq.collect id
                 |> Seq.distinct
                 |> Set.ofSeq
 
             let suppliedButNotUsed =
                 paramsInQuery
-                |> Set.difference (
-                    parameters
-                    |> List.map (fun p -> p.name)
-                    |> Set.ofList
-                )
+                |> Set.difference (suppliedParameterNames |> Set.ofList)
                 |> Set.toList
 
             let usedByNotSupplied =
-                parameters
-                |> List.map (fun p -> p.name)
+                suppliedParameterNames
                 |> Set.ofList
                 |> Set.difference paramsInQuery
                 |> Set.toList
@@ -187,7 +188,8 @@ module CosmosCodeAnalyzer =
                 |> List.map
                     (fun p ->
                         let up =
-                            parameters |> List.find (fun upp -> upp.name = p)
+                            suppliedParameters
+                            |> List.find (fun upp -> cleanParamName upp.name = p)
 
                         let msg =
                             Messaging.warning
@@ -195,6 +197,8 @@ module CosmosCodeAnalyzer =
                                 up.range
 
                         { msg with
+                              Type = Messaging.UnusedParameter.Type
+                              Code = Messaging.UnusedParameter.Code
                               Fixes =
                                   paramsInQuery
                                   |> Set.toList
@@ -208,18 +212,17 @@ module CosmosCodeAnalyzer =
                 usedByNotSupplied
                 |> List.map
                     (fun p ->
-                        let paramWithSym = sprintf "@%s" p
-                        let paramPosInQuery = query.IndexOf paramWithSym
+                        let paramPosInQuery = query.IndexOf p
 
                         let paramRangeInQuery =
                             mkRange
-                                paramWithSym
+                                p
                                 (mkPos queryRange.StartLine (queryRange.StartColumn + paramPosInQuery + 1))
                                 (mkPos
                                     queryRange.EndLine
                                     (queryRange.StartColumn
                                      + paramPosInQuery
-                                     + paramWithSym.Length
+                                     + p.Length
                                      + 1))
 
                         let msg =
@@ -228,19 +231,38 @@ module CosmosCodeAnalyzer =
                                 paramRangeInQuery
 
                         { msg with
+                              Type = Messaging.MissingParameter.Type
+                              Code = Messaging.MissingParameter.Code
                               Fixes =
-                                  parameters
+                                  suppliedParameters
                                   |> List.map
                                       (fun up ->
                                           { FromRange = paramRangeInQuery
-                                            FromText = paramWithSym
-                                            ToText = sprintf "@%s" up.name }) })
+                                            FromText = p
+                                            ToText = cleanParamName up.name }) })
 
-            [ yield! missingParams
+            let suppliedWithoutSymbol =
+                suppliedParameters
+                |> List.filter (fun p -> not (p.name.StartsWith("@")))
+                |> List.map
+                    (fun param ->
+                        let msg =
+                            Messaging.error (sprintf "The parameter '%s' is missing an '@'" param.name) param.range
+
+                        { msg with
+                              Code = Messaging.ParameterMissingSymbol.Code
+                              Type = Messaging.ParameterMissingSymbol.Type
+                              Fixes =
+                                  [ { FromRange = param.range
+                                      FromText = param.name
+                                      ToText = cleanParamName param.name |> sprintf "\"@%s\"" } ] })
+
+            [ yield! suppliedWithoutSymbol
+              yield! missingParams
               yield! excessiveParams ]
 
         | None ->
-            parameters
+            suppliedParameters
             |> List.map
                 (fun p ->
                     Messaging.warning (sprintf "The parameter '%s' is defined but not used in the query" p.name) p.range)
