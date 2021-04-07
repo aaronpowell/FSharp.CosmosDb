@@ -12,6 +12,11 @@
 - Improved the PartitionKey detection logic
 - Dependency upgrades across the board
 
+### Fixed
+
+- Parameter handling wasn't very accurate
+- New fix will warn if you forget the `@` on param names
+
 ## [0.4.0] - 2020-12-22
 
 ### Changed
