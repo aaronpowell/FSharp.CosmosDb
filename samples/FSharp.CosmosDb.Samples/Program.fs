@@ -54,16 +54,16 @@ let insertFamilies<'T> conn (families: 'T list) =
 // this is to test a broken query in the analyzer
 let getFamiliesBroken conn =
     conn
-    |> Cosmos.query "SELECT * FROM f WHERE f.Name = @name AND f.Age = @AGE"
+    |> Cosmos.query<Family> "SELECT * FROM f WHERE f.Name = @name AND f.Age = @AGE"
     |> Cosmos.parameters [ "age", box 35
                            "lastName", box "Powell" ]
-    |> Cosmos.execAsync<Family>
+    |> Cosmos.execAsync
 
 let getFamilies conn =
     conn
-    |> Cosmos.query "SELECT * FROM f WHERE f.LastName = @lastName"
+    |> Cosmos.query<Family> "SELECT * FROM f WHERE f.LastName = @lastName"
     |> Cosmos.parameters [ "@lastName", box "Powell" ]
-    |> Cosmos.execAsync<Family>
+    |> Cosmos.execAsync
 
 let updateFamily conn id pk =
     conn
@@ -152,8 +152,8 @@ let main argv =
 
         do!
             conn
-            |> Cosmos.query "SELECT * FROM c"
-            |> Cosmos.execAsync<Family>
+            |> Cosmos.query<Family> "SELECT * FROM c"
+            |> Cosmos.execAsync
             |> AsyncSeq.map (fun f -> { f with LastName = "Powellz" })
             |> AsyncSeq.map (fun f -> conn |> Cosmos.replace f |> Cosmos.execAsync)
             |> AsyncSeq.iter (fun f -> printfn "Replaced: %A" f)

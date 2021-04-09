@@ -49,8 +49,8 @@ module CosmosCodeAnalysis =
                                          _,
                                          _,
                                          _,
-                                         typeAppRange)),
-                       SynExpr.Const (SynConst.String (query, _), _),
+                                         _)),
+                       SynExpr.Const (SynConst.String (query, queryRange), _),
                        _) ->
             match dotConcat listOfIds with
             | "Cosmos.query" ->
@@ -62,7 +62,7 @@ module CosmosCodeAnalysis =
                             | SynType.LongIdent (LongIdentWithDots (listOfIds, _)) -> dotConcat listOfIds |> Some
                             | _ -> None)
 
-                Some(names, query, typeAppRange)
+                Some(names, query, queryRange)
             | _ -> None
         | _ -> None
 
@@ -137,7 +137,7 @@ module CosmosCodeAnalysis =
         function
         | Query (query, range) -> [ CosmosAnalyzerBlock.Query(query, range) ]
         | LiteralQuery (identifier, range) -> [ CosmosAnalyzerBlock.LiteralQuery(identifier, range) ]
-        | TypedQuery (_, query, typeAppRange) -> [ CosmosAnalyzerBlock.Query(query, typeAppRange) ]
+        | TypedQuery (_, query, queryRange) -> [ CosmosAnalyzerBlock.Query(query, queryRange) ]
         | SynExpr.App (_, _, funcExpr, argExpr, _) ->
             [ yield! findQuery funcExpr
               yield! findQuery argExpr ]
