@@ -1,5 +1,11 @@
 # Changelog for `FSharp.CosmosDb`
 
+## [0.5.1] - 2021-04-09
+
+### Fixed
+
+- Overhaul of release pipeline
+
 ## [0.5.0] - 2021-04-09
 
 ### Added
