@@ -1,8 +1,10 @@
+open System.IO.Compression
 #load ".fake/build.fsx/intellisense.fsx"
 
 open Fake.Core
 open Fake.DotNet
 open Fake.IO
+open Fake.IO.FileSystemOperators
 open Fake.IO.Globbing.Operators
 open Fake.Core.TargetOperators
 open Fake.BuildServer
@@ -10,6 +12,7 @@ open Fake.BuildServer
 Target.initEnvironment ()
 
 let sln = "./FSharp.CosmosDb.sln"
+let nupkgPath = "./.nupkg"
 
 let getChangelog () =
     let changelog = "CHANGELOG.md" |> Changelog.load
@@ -42,7 +45,7 @@ Target.create
     "Clean"
     (fun _ ->
         DotNet.exec id "clean" "" |> ignore
-        !! "./.nuget" |> Shell.cleanDirs)
+        !!nupkgPath |> Shell.cleanDirs)
 
 Target.create "Restore" (fun _ -> DotNet.restore id sln)
 
@@ -84,17 +87,54 @@ Target.create
     (fun ctx ->
         let changelog = getChangelog ()
 
+        let version =
+            ctx.Context.AllExecutingTargets
+            |> getVersionNumber changelog
+
         let args =
-            [ sprintf "/p:PackageVersion=%s" (getVersionNumber changelog (ctx.Context.AllExecutingTargets))
+            [ sprintf "/p:PackageVersion=%s" version
               sprintf "/p:PackageReleaseNotes=\"%s\"" (sprintf "%O" changelog) ]
 
         DotNet.pack
             (fun c ->
                 { c with
                       Configuration = configuration (ctx.Context.AllExecutingTargets)
-                      OutputPath = Some "./.nupkg"
+                      OutputPath = Some nupkgPath
                       Common = c.Common |> DotNet.Options.withAdditionalArgs args })
-            sln)
+            sln
+
+        let analyzerNupkg =
+            nupkgPath
+            </> (sprintf "FSharp.CosmosDb.Analyzer.%s.nupkg" version)
+
+        Zip.unzip (nupkgPath </> "analyzerNupkgContents") analyzerNupkg
+
+        Directory.ensure (nupkgPath </> "analyzer" </> "lib" </> "net5.0")
+
+        Shell.copy
+            (nupkgPath </> "analyzer")
+            [ (nupkgPath
+               </> "analyzerNupkgContents"
+               </> "FSharp.CosmosDb.Analyzer.nuspec") ]
+
+        let buildConfig =
+            if isRelease ctx.Context.AllExecutingTargets then
+                "Release"
+            else
+                "Debug"
+
+        Shell.copyDir
+            (nupkgPath </> "analyzer" </> "lib" </> "net5.0")
+            ("src"
+             </> "FSharp.CosmosDb.Analyzer"
+             </> "bin"
+             </> buildConfig
+             </> "net5.0"
+             </> "publish")
+            (fun _ -> true)
+
+        File.delete analyzerNupkg
+        ZipFile.CreateFromDirectory((nupkgPath </> "analyzer"), analyzerNupkg))
 
 Target.create
     "PackageVersion"
@@ -106,16 +146,10 @@ Target.create
     "Changelog"
     (fun _ ->
         let changelog = getChangelog ()
-        Directory.ensure "./.nupkg"
+        Directory.ensure nupkgPath
 
         [| sprintf "%O" changelog |]
-        |> File.append "./.nupkg/changelog.md")
-
-Target.create
-    "SetVersionForCI"
-    (fun _ ->
-        let changelog = getChangelog ()
-        printfn "::set-env name=package_version::%s" changelog.NuGetVersion)
+        |> File.append (nupkgPath </> "changelog.md"))
 
 Target.create
     "Test"

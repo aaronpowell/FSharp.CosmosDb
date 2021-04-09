@@ -2,8 +2,6 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <Description>An F# analyzer that will help you work with CosmosDB.</Description>
-    <IsPackable>true</IsPackable>
-    <PackAsTool>true</PackAsTool>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Types.fs" />
