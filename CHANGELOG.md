@@ -1,11 +1,12 @@
 # Changelog for `FSharp.CosmosDb`
 
-## [0.5.0] - Unreleased
+## [0.5.0] - 2021-04-09
 
 ### Added
 
 - New `IdAttribute` for marking the ID field of the records
 - New API methods for doing `read` and `replace` operations with API
+- Analyzer will now detect missing `@` on parameters and provide a fix
 
 ### Changed
 
@@ -15,7 +16,7 @@
 ### Fixed
 
 - Parameter handling wasn't very accurate
-- New fix will warn if you forget the `@` on param names
+- `Cosmos.query` now accepts a generic argument
 
 ## [0.4.0] - 2020-12-22
 

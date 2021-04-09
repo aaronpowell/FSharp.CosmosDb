@@ -134,6 +134,8 @@ Also part of this repo is a [F# Analyzer](https://github.com/ionide/FSharp.Analy
   - Quick fix provided with list of defined parameters (if any)
 - Detection of supplied but unused parameters
   - Quick fix provided with list of declared parameters
+- Detection of missing `@` for parameter name
+  - Quick fix provided to add it in
 
 ## Analyzer Usage
 
