@@ -230,7 +230,7 @@ module CosmosCodeAnalysis =
                     parameters
                     |> List.map
                         (fun (name, range, func, funcRange, appRange) ->
-                            { name = name.TrimStart('@')
+                            { name = name
                               range = range
                               paramFunc = func
                               paramFuncRange = funcRange
