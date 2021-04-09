@@ -28,17 +28,24 @@ module CosmosCodeAnalysis =
         | SynExpr.LongIdent (_, LongIdentWithDots (listOfIds, _), _, _) -> Some(dotConcat listOfIds, range)
         | _ -> None
 
+    // for match of:
+    // Cosmos.query "..." ...
     let (|Query|_|) =
         function
         | Apply ("Cosmos.query", SynExpr.Const (SynConst.String (query, _), constRange), _, _) ->
             Some(query, constRange)
         | _ -> None
 
+    // for match of:
+    // let query = "..."
+    // Cosmos.query query ...
     let (|LiteralQuery|_|) =
         function
         | Apply ("Cosmos.query", SynExpr.Ident (identifier), funcRange, _) -> Some(identifier.idText, funcRange)
         | _ -> None
 
+    // for match of:
+    // Cosmos.query<Foo> "..." ...
     let (|TypedQuery|_|) synExpr =
         match synExpr with
         | SynExpr.App (_,
