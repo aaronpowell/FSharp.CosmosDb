@@ -53,3 +53,10 @@ type ContainerOperation<'T> =
     | Upsert of UpsertOp<'T>
     | Read of ReadOp<'T>
     | Replace of ReplaceOp<'T>
+
+type ChangeFeedOptions<'T> =
+    { Connection: ConnectionOperation
+      Processor: string
+      OnChange: Microsoft.Azure.Cosmos.Container.ChangesHandler<'T>
+      InstanceName: string option
+      LeaseContainer: ConnectionOperation option }

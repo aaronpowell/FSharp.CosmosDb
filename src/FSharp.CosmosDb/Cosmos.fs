@@ -175,3 +175,50 @@ module Cosmos =
 
                 return db.GetContainer cn
             }
+
+    [<RequireQualifiedAccess>]
+    module ChangeFeed =
+        let create<'T> processor onChange connInfo : ChangeFeedOptions<'T> =
+            { Processor = processor
+              OnChange = onChange
+              Connection = connInfo
+              LeaseContainer = None
+              InstanceName = None }
+
+        let withInstanceName<'T> name changeFeedInfo =
+            { changeFeedInfo with
+                  InstanceName = Some name }
+
+        let leaseContainer<'T> leaseContainerInfo changeFeedInfo =
+            { changeFeedInfo with
+                  LeaseContainer = Some leaseContainerInfo }
+
+        let build<'T> changeFeedInfo =
+            let processor =
+                maybe {
+                    let! container = Raw.container changeFeedInfo.Connection
+
+                    return
+                        container.GetChangeFeedProcessorBuilder<'T>(changeFeedInfo.Processor, changeFeedInfo.OnChange)
+                }
+
+            match processor with
+            | Some processor ->
+                maybe {
+                    let! instanceName = changeFeedInfo.InstanceName
+
+                    return processor.WithInstanceName instanceName
+                }
+                |> ignore
+
+                maybe {
+                    let! leaseContainer = changeFeedInfo.LeaseContainer
+                    let! container = Raw.container leaseContainer
+
+                    return processor.WithLeaseContainer container
+                }
+                |> ignore
+
+                processor.Build()
+            | None ->
+                failwith "Unable to connect the change feed. Ensure the container and lease container info is all set"
