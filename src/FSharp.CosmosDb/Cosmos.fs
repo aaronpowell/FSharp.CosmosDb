@@ -1,6 +1,6 @@
 namespace FSharp.CosmosDb
 
-open Azure.Cosmos
+open Microsoft.Azure.Cosmos
 open FSharp.Control
 open System
 open System.Reflection
@@ -145,7 +145,10 @@ module Cosmos =
         | Read op -> OperationHandling.execRead getClient op
         | Replace op -> OperationHandling.execReplace getClient op
 
-    let execBatchAsync<'T> (op: ContainerOperation<'T>) =
+    let execBatchAsync<'T> batchSize (op: ContainerOperation<'T>) =
         match op with
-        | Query op -> OperationHandling.execQueryBatch getClient op
+        | Query op ->
+            let queryOps = QueryRequestOptions()
+            queryOps.MaxItemCount <- batchSize
+            OperationHandling.execQueryBatch getClient op queryOps
         | _ -> failwith "Batch return operation only supported with query operations, use `execAsync` instead."

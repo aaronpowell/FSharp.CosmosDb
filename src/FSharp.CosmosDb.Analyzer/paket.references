@@ -1,8 +1,8 @@
 FSharp.Core
 FSharp.Analyzers.SDK
 FSharp.Compiler.Service
-Azure.Cosmos
 FSharp.Control.AsyncSeq
 FSharp.SystemTextJson
 Azure.Core
 Microsoft.Build.Utilities.Core
+Microsoft.Azure.Cosmos

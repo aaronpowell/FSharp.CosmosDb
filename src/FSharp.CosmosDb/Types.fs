@@ -1,6 +1,6 @@
 namespace FSharp.CosmosDb
 
-open Azure.Cosmos
+open Microsoft.Azure.Cosmos
 
 type ConnectionOperation =
     { Options: CosmosClientOptions option

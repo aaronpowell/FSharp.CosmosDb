@@ -1,14 +1,14 @@
 namespace FSharp.CosmosDb.Analyzer
 
 open FSharp.Compiler.Text
-open Azure.Cosmos
+open Microsoft.Azure.Cosmos
 open FSharp.Control
 open FSharp.Analyzers.SDK
 open System.Net.Http
 open System
 open System.Text.RegularExpressions
 open FSharp.Compiler.Text.Range
-open FSharp.Compiler.Text.Pos
+open FSharp.Compiler.Text.Position
 
 type ConnectionResult =
     | Error of string
@@ -29,7 +29,9 @@ module CosmosCodeAnalyzer =
         with
         | :? AggregateException as ex when
             ex.InnerExceptions
-            |> Seq.exists (fun e -> e :? HttpRequestException) -> Error "Could not establish Cosmos DB connection."
+            |> Seq.exists (fun e -> e :? HttpRequestException)
+            ->
+            Error "Could not establish Cosmos DB connection."
         | ex ->
             printfn "%A" ex
             Error "Something unknown happened when trying to access Cosmos DB"
@@ -49,7 +51,7 @@ module CosmosCodeAnalyzer =
         async {
             let! result =
                 cosmosClient.GetDatabaseQueryIterator<DatabaseProperties>()
-                |> AsyncSeq.ofAsyncEnum
+                |> AsyncSeq.ofAsyncFeedIterator
                 |> AsyncSeq.toListAsync
 
             let matching =
@@ -93,7 +95,7 @@ module CosmosCodeAnalyzer =
                     cosmosClient
                         .GetDatabase(databaseId)
                         .GetContainerQueryIterator<ContainerProperties>()
-                    |> AsyncSeq.ofAsyncEnum
+                    |> AsyncSeq.ofAsyncFeedIterator
                     |> AsyncSeq.toListAsync
 
                 let matching =
@@ -119,7 +121,8 @@ module CosmosCodeAnalyzer =
             with
             | :? AggregateException as ex when
                 ex.InnerExceptions
-                |> Seq.exists (fun e -> e :? CosmosException) ->
+                |> Seq.exists (fun e -> e :? CosmosException)
+                ->
                 return
                     [ Messaging.warning "Failed to retrieve container names, database name is probably invalid." range ]
             | ex ->

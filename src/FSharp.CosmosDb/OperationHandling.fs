@@ -2,7 +2,7 @@
 module internal OperationHandling
 
 open FSharp.CosmosDb
-open Azure.Cosmos
+open Microsoft.Azure.Cosmos
 open FSharp.Control
 open System
 
@@ -23,7 +23,11 @@ let getPartitionKeyValue<'T> (single: 'T) =
         Nullable(PartitionKey(value.ToString()))
     | None -> Nullable()
 
-let execQueryInternal (getClient: ConnectionOperation -> CosmosClient) (op: QueryOp<'T>) =
+let execQueryInternal
+    (getClient: ConnectionOperation -> CosmosClient)
+    (op: QueryOp<'T>)
+    (queryOps: QueryRequestOptions)
+    =
     let connInfo = op.Connection
     let client = getClient connInfo
 
@@ -43,22 +47,23 @@ let execQueryInternal (getClient: ConnectionOperation -> CosmosClient) (op: Quer
                 (fun (qd: QueryDefinition) (key, value) -> qd.WithParameter(key, value))
                 (QueryDefinition query)
 
-        return container.GetItemQueryIterator<'T> qd
+        return container.GetItemQueryIterator<'T>(qd, null, queryOps)
     }
 
 let execQuery (getClient: ConnectionOperation -> CosmosClient) (op: QueryOp<'T>) =
-    let result = execQueryInternal getClient op
+    let result =
+        execQueryInternal getClient op (QueryRequestOptions())
 
     match result with
-    | Some result -> result |> AsyncSeq.ofAsyncEnum
+    | Some result -> result |> AsyncSeq.ofAsyncFeedIterator
     | None ->
         failwith "Unable to construct a query as some values are missing across the database, container name and query"
 
-let execQueryBatch (getClient: ConnectionOperation -> CosmosClient) (op: QueryOp<'T>) =
-    let result = execQueryInternal getClient op
+let execQueryBatch (getClient: ConnectionOperation -> CosmosClient) (op: QueryOp<'T>) (queryOps: QueryRequestOptions) =
+    let result = execQueryInternal getClient op queryOps
 
     match result with
-    | Some result -> result.AsPages() |> AsyncSeq.ofAsyncEnum
+    | Some result -> result |> AsyncSeq.ofAsyncFeedIterator
     | None ->
         failwith "Unable to construct a query as some values are missing across the database, container name and query"
 
@@ -99,7 +104,7 @@ let execInsert (getClient: ConnectionOperation -> CosmosClient) (op: InsertOp<'T
             (fun item ->
                 async {
                     let! value = item
-                    return value.Value
+                    return value.Resource
                 })
         |> AsyncSeq.ofSeqAsync
     | None ->
@@ -142,7 +147,7 @@ let execUpsert (getClient: ConnectionOperation -> CosmosClient) (op: UpsertOp<'T
             (fun item ->
                 async {
                     let! value = item
-                    return value.Value
+                    return value.Resource
                 })
         |> AsyncSeq.ofSeqAsync
     | None ->
@@ -172,13 +177,13 @@ let execUpdate (getClient: ConnectionOperation -> CosmosClient) (op: UpdateOp<'T
         [ async {
               let! currentItemResponse = result
 
-              let newItem = op.Updater currentItemResponse.Value
+              let newItem = op.Updater currentItemResponse.Resource
 
               let! newItemResponse =
                   container.ReplaceItemAsync(newItem, op.Id, getPartitionKeyValue newItem)
                   |> Async.AwaitTask
 
-              return newItemResponse.Value
+              return newItemResponse.Resource
           } ]
         |> AsyncSeq.ofSeqAsync
 
@@ -206,7 +211,7 @@ let execDelete (getClient: ConnectionOperation -> CosmosClient) (op: DeleteOp<'T
     | Some result ->
         [ async {
               let! currentItemResponse = result
-              return currentItemResponse.Value
+              return currentItemResponse.Resource
           } ]
         |> AsyncSeq.ofSeqAsync
 
@@ -233,7 +238,7 @@ let execRead (getClient: ConnectionOperation -> CosmosClient) (op: ReadOp<'T>) =
     | Some result ->
         [ async {
               let! currentItemResponse = result
-              return currentItemResponse.Value
+              return currentItemResponse.Resource
           } ]
         |> AsyncSeq.ofSeqAsync
     | None -> failwith "Unable to read from the container to get item"
@@ -261,7 +266,7 @@ let execReplace (getClient: ConnectionOperation -> CosmosClient) (op: ReplaceOp<
     | Some result ->
         [ async {
               let! currentItemResponse = result
-              return currentItemResponse.Value
+              return currentItemResponse.Resource
           } ]
         |> AsyncSeq.ofSeqAsync
     | None -> failwith "Unable to read from the container to replace item"
