@@ -1,5 +1,17 @@
 # Changelog for `FSharp.CosmosDb`
 
+## [1.0.0] - unreleased
+
+**This release has breaking changes from pre-v1**
+
+### Changed
+
+- Moved away from Cosmos SDK 4 to use Cosmos SDK 4
+  - v4 has no GA date and new features land in v3
+- No longer using `AsyncPagable` or `Page<T>` as that was in v4
+- `execBatchAsync` now accepts a batch size so it can properly paginate
+- Updated analyzer dependencies
+
 ## [0.5.2] - 2021-04-09
 
 ### Fixed
