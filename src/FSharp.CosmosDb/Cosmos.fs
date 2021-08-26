@@ -1,9 +1,6 @@
 namespace FSharp.CosmosDb
 
 open Microsoft.Azure.Cosmos
-open FSharp.Control
-open System
-open System.Reflection
 
 [<RequireQualifiedAccess>]
 module Cosmos =
@@ -152,3 +149,29 @@ module Cosmos =
             queryOps.MaxItemCount <- batchSize
             OperationHandling.execQueryBatch getClient op queryOps
         | _ -> failwith "Batch return operation only supported with query operations, use `execAsync` instead."
+
+    // --- Access Cosmos APIs directly --- //
+
+    [<RequireQualifiedAccess>]
+    module Raw =
+        let client connInfo = getClient connInfo
+
+        let database connInfo =
+            maybe {
+                let client = getClient connInfo
+                let! dbName = connInfo.DatabaseId
+
+                return client.GetDatabase dbName
+            }
+
+        let container connInfo =
+            maybe {
+                let client = getClient connInfo
+                let! dbName = connInfo.DatabaseId
+
+                let db = client.GetDatabase dbName
+
+                let! cn = connInfo.ContainerName
+
+                return db.GetContainer cn
+            }

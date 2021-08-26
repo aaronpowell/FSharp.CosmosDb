@@ -149,7 +149,6 @@ let main argv =
             deletePowell
             |> AsyncSeq.iter (fun f -> printfn "Deleted: %A" f)
 
-
         do!
             conn
             |> Cosmos.query<Family> "SELECT * FROM c"

@@ -12,6 +12,10 @@
 - `execBatchAsync` now accepts a batch size so it can properly paginate
 - Updated analyzer dependencies
 
+### Added
+
+- New APId for getting the raw SDK version of the CosmosClient, Database and Container
+
 ## [0.5.2] - 2021-04-09
 
 ### Fixed
