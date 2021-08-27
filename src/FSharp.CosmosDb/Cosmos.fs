@@ -222,28 +222,20 @@ module Cosmos =
 
             match processor with
             | Some processor ->
-                maybe {
-                    let! instanceName = changeFeedInfo.InstanceName
-                    return processor.WithInstanceName instanceName
-                }
+                changeFeedInfo.InstanceName
+                |> Option.map processor.WithInstanceName
                 |> ignore
 
-                maybe {
-                    let! pollingInterval = changeFeedInfo.PollingInterval
-                    return processor.WithPollInterval pollingInterval
-                }
+                changeFeedInfo.PollingInterval
+                |> Option.map processor.WithPollInterval
                 |> ignore
 
-                maybe {
-                    let! startTime = changeFeedInfo.StartTime
-                    return processor.WithStartTime startTime
-                }
+                changeFeedInfo.StartTime
+                |> Option.map processor.WithStartTime
                 |> ignore
 
-                maybe {
-                    let! maxItems = changeFeedInfo.MaxItems
-                    return processor.WithMaxItems maxItems
-                }
+                changeFeedInfo.MaxItems
+                |> Option.map processor.WithMaxItems
                 |> ignore
 
                 maybe {
