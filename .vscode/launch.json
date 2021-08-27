@@ -34,6 +34,20 @@
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    {
+      "name": "Run Sample Change Feed",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/samples/FSharp.CosmosDb.Samples.ChangeFeed/bin/Debug/net5.0/FSharp.CosmosDb.Samples.ChangeFeed.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/samples/FSharp.CosmosDb.Samples",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
     }
   ]
 }

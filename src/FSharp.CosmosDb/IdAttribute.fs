@@ -2,14 +2,13 @@ namespace FSharp.CosmosDb
 
 open System
 open System.Reflection
-open System.Text.Json.Serialization
 
 [<AttributeUsageAttribute(AttributeTargets.Field
                           ||| AttributeTargets.Property,
                           AllowMultiple = false,
                           Inherited = true)>]
 type IdAttribute() =
-    inherit JsonAttribute()
+    inherit Attribute()
 
 [<RequireQualifiedAccess>]
 module IdAttributeTools =

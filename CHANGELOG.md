@@ -14,7 +14,9 @@
 
 ### Added
 
-- New APId for getting the raw SDK version of the CosmosClient, Database and Container
+- New APIs for getting the raw SDK version of the CosmosClient, Database and Container
+- New API for working with the Cosmos Change Feed in a F# manner
+- Sample showing how to use the Change Feed, works with the existing sample but can be run standalone
 
 ## [0.5.2] - 2021-04-09
 

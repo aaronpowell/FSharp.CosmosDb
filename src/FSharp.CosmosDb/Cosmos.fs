@@ -183,15 +183,30 @@ module Cosmos =
               OnChange = onChange
               Connection = connInfo
               LeaseContainer = None
-              InstanceName = None }
+              InstanceName = None
+              PollingInterval = None
+              StartTime = None
+              MaxItems = None }
 
-        let withInstanceName<'T> name changeFeedInfo =
+        let withInstanceName<'T> name changeFeedInfo : ChangeFeedOptions<'T> =
             { changeFeedInfo with
                   InstanceName = Some name }
 
-        let leaseContainer<'T> leaseContainerInfo changeFeedInfo =
+        let leaseContainer<'T> leaseContainerInfo changeFeedInfo : ChangeFeedOptions<'T> =
             { changeFeedInfo with
                   LeaseContainer = Some leaseContainerInfo }
+
+        let pollingInterval<'T> interval changeFeedInfo : ChangeFeedOptions<'T> =
+            { changeFeedInfo with
+                  PollingInterval = Some interval }
+
+        let startTime<'T> startTime changeFeedInfo : ChangeFeedOptions<'T> =
+            { changeFeedInfo with
+                  StartTime = Some startTime }
+
+        let maxItems<'T> maxItems changeFeedInfo : ChangeFeedOptions<'T> =
+            { changeFeedInfo with
+                  MaxItems = Some maxItems }
 
         let build<'T> changeFeedInfo =
             let processor =
@@ -199,15 +214,35 @@ module Cosmos =
                     let! container = Raw.container changeFeedInfo.Connection
 
                     return
-                        container.GetChangeFeedProcessorBuilder<'T>(changeFeedInfo.Processor, changeFeedInfo.OnChange)
+                        container.GetChangeFeedProcessorBuilder<'T>(
+                            changeFeedInfo.Processor,
+                            (fun changes cancellationToken -> changeFeedInfo.OnChange changes cancellationToken)
+                        )
                 }
 
             match processor with
             | Some processor ->
                 maybe {
                     let! instanceName = changeFeedInfo.InstanceName
-
                     return processor.WithInstanceName instanceName
+                }
+                |> ignore
+
+                maybe {
+                    let! pollingInterval = changeFeedInfo.PollingInterval
+                    return processor.WithPollInterval pollingInterval
+                }
+                |> ignore
+
+                maybe {
+                    let! startTime = changeFeedInfo.StartTime
+                    return processor.WithStartTime startTime
+                }
+                |> ignore
+
+                maybe {
+                    let! maxItems = changeFeedInfo.MaxItems
+                    return processor.WithMaxItems maxItems
                 }
                 |> ignore
 

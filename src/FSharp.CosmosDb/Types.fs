@@ -1,6 +1,10 @@
 namespace FSharp.CosmosDb
 
 open Microsoft.Azure.Cosmos
+open System.Threading
+open System.Threading.Tasks
+open System.Collections.Generic
+open System
 
 type ConnectionOperation =
     { Options: CosmosClientOptions option
@@ -57,6 +61,9 @@ type ContainerOperation<'T> =
 type ChangeFeedOptions<'T> =
     { Connection: ConnectionOperation
       Processor: string
-      OnChange: Microsoft.Azure.Cosmos.Container.ChangesHandler<'T>
+      OnChange: IReadOnlyCollection<'T> -> CancellationToken -> Task
       InstanceName: string option
-      LeaseContainer: ConnectionOperation option }
+      LeaseContainer: ConnectionOperation option
+      PollingInterval: TimeSpan option
+      StartTime: DateTime option
+      MaxItems: int option }
