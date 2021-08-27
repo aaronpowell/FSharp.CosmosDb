@@ -1,6 +1,7 @@
 namespace FSharp.CosmosDb
 
 open Microsoft.Azure.Cosmos
+open System.Collections.Concurrent
 
 [<RequireQualifiedAccess>]
 module Cosmos =
@@ -109,6 +110,48 @@ module Cosmos =
 
     // --- Execute --- //
 
+    let private clientCache =
+        ConcurrentDictionary<string, CosmosClient>()
+
+    let inline private tryGetOption key (cd: ConcurrentDictionary<_, _>) =
+        if cd.ContainsKey key then
+            Some(cd.[key])
+        else
+            None
+
+    let inline private getFromConnStr connInfo clientOps =
+        maybe {
+            let! connStr = connInfo.ConnectionString
+
+            return
+                clientCache
+                |> tryGetOption connStr
+                |> Option.defaultWith
+                    (fun () ->
+                        let client = new CosmosClient(connStr, clientOps)
+                        clientCache.[connStr] <- client
+                        client)
+        }
+
+    let inline private getFromHost connInfo clientOps =
+        maybe {
+            let! host = connInfo.Endpoint
+            let! accessKey = connInfo.AccessKey
+
+            let connStr = sprintf "%s%s" host accessKey
+
+            return
+                clientCache
+                |> tryGetOption connStr
+                |> Option.defaultWith
+                    (fun () ->
+                        let client =
+                            new CosmosClient(host, accessKey, clientOps)
+
+                        clientCache.[connStr] <- client
+                        client)
+        }
+
     let private getClient connInfo =
         let clientOps =
             match connInfo.Options with
@@ -117,20 +160,17 @@ module Cosmos =
 
         let client =
             if connInfo.FromConnectionString then
-                maybe {
-                    let! connStr = connInfo.ConnectionString
-                    return new CosmosClient(connStr, clientOps)
-                }
+                getFromConnStr connInfo clientOps
             else
-                maybe {
-                    let! host = connInfo.Endpoint
-                    let! accessKey = connInfo.AccessKey
-                    return new CosmosClient(host, accessKey, clientOps)
-                }
+                getFromHost connInfo clientOps
 
         match client with
         | Some client -> client
         | None -> failwith "No connection information provided"
+
+    let dispose connInfo =
+        let client = getClient connInfo
+        client.Dispose()
 
     let execAsync<'T> (op: ContainerOperation<'T>) =
         match op with
