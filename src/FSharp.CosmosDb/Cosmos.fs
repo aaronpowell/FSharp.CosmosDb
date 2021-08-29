@@ -262,20 +262,23 @@ module Cosmos =
 
             match processor with
             | Some processor ->
-                changeFeedInfo.InstanceName
-                |> Option.map processor.WithInstanceName
-                |> ignore
-
-                changeFeedInfo.PollingInterval
-                |> Option.map processor.WithPollInterval
-                |> ignore
-
-                changeFeedInfo.StartTime
-                |> Option.map processor.WithStartTime
-                |> ignore
-
-                changeFeedInfo.MaxItems
-                |> Option.map processor.WithMaxItems
+                processor
+                |> fun c ->
+                    match changeFeedInfo.InstanceName with
+                    | Some i -> c.WithInstanceName i
+                    | None -> c
+                |> fun c ->
+                    match changeFeedInfo.PollingInterval with
+                    | Some i -> c.WithPollInterval i
+                    | None -> c
+                |> fun c ->
+                    match changeFeedInfo.StartTime with
+                    | Some x -> c.WithStartTime x
+                    | None -> c
+                |> fun c ->
+                    match changeFeedInfo.MaxItems with
+                    | Some x -> c.WithMaxItems x
+                    | None -> c
                 |> ignore
 
                 maybe {
