@@ -6,7 +6,7 @@
 
 ### Changed
 
-- Moved away from Cosmos SDK 4 to use Cosmos SDK 4
+- Moved away from `Azure.Cosmos` 'V4' SDK to use `Microsoft.Azure.Cosmos` 'V3' SDK
   - v4 has no GA date and new features land in v3
 - No longer using `AsyncPagable` or `Page<T>` as that was in v4
 - `execBatchAsync` now accepts a batch size so it can properly paginate
