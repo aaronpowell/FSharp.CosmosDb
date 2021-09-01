@@ -11,12 +11,14 @@
 - No longer using `AsyncPagable` or `Page<T>` as that was in v4
 - `execBatchAsync` now accepts a batch size so it can properly paginate
 - Updated analyzer dependencies
+- The record representing a connection to Cosmos is now a disposable object
 
 ### Added
 
 - New APIs for getting the raw SDK version of the CosmosClient, Database and Container
 - New API for working with the Cosmos Change Feed in a F# manner
 - Sample showing how to use the Change Feed, works with the existing sample but can be run standalone
+- New `Cosmos.dispose` method for disposing of a connection (just wraps the call on `ConnectionOperation` for disposable)
 
 ## [0.5.2] - 2021-04-09
 
