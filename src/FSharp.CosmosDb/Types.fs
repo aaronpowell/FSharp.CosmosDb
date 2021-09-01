@@ -3,8 +3,52 @@ namespace FSharp.CosmosDb
 open Microsoft.Azure.Cosmos
 open System.Threading
 open System.Threading.Tasks
-open System.Collections.Generic
+open System.Collections.Concurrent
 open System
+open System.Collections.Generic
+
+module internal Caching =
+    let private clientCache =
+        ConcurrentDictionary<string, CosmosClient>()
+
+    let inline private tryGetOption key (cd: ConcurrentDictionary<_, _>) =
+        if cd.ContainsKey key then
+            Some(cd.[key])
+        else
+            None
+
+    let fromConnStr connStr clientOps =
+        maybe {
+            let! cs = connStr
+
+            return
+                clientCache
+                |> tryGetOption cs
+                |> Option.defaultWith
+                    (fun () ->
+                        let client = new CosmosClient(cs, clientOps)
+                        clientCache.[cs] <- client
+                        client)
+        }
+
+    let fromKey host' accessKey' clientOps =
+        maybe {
+            let! host = host'
+            let! accessKey = accessKey'
+
+            let connStr = sprintf "%s%s" host accessKey
+
+            return
+                clientCache
+                |> tryGetOption connStr
+                |> Option.defaultWith
+                    (fun () ->
+                        let client =
+                            new CosmosClient(host, accessKey, clientOps)
+
+                        clientCache.[connStr] <- client
+                        client)
+        }
 
 type ConnectionOperation =
     { Options: CosmosClientOptions option
@@ -14,6 +58,27 @@ type ConnectionOperation =
       ConnectionString: string option
       DatabaseId: string option
       ContainerName: string option }
+
+    member internal this.GetClient() =
+        let clientOps =
+            match this.Options with
+            | Some op -> op
+            | None -> CosmosClientOptions()
+
+        let client =
+            if this.FromConnectionString then
+                Caching.fromConnStr this.ConnectionString clientOps
+            else
+                Caching.fromKey this.Endpoint this.AccessKey clientOps
+
+        match client with
+        | Some client -> client
+        | None -> failwith "No connection information provided"
+
+    interface IDisposable with
+        override this.Dispose() =
+            let client = this.GetClient()
+            client.Dispose()
 
 // --- Operation Types --- //
 type QueryOp<'T> =

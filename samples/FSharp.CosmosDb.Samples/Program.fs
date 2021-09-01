@@ -76,7 +76,7 @@ let main argv =
     async {
         let host = config.["CosmosConnection:Host"]
         let key = config.["CosmosConnection:Key"]
-        let conn = getFamiliesConnection host key
+        use conn = getFamiliesConnection host key
 
         // let connectionString =
         //     config.["CosmosConnection:ConnectionString"]
