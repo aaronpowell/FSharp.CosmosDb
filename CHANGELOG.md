@@ -12,6 +12,7 @@
 - `execBatchAsync` now accepts a batch size so it can properly paginate
 - Updated analyzer dependencies
 - The record representing a connection to Cosmos is now a disposable object
+- Support for .NET 6
 
 ### Added
 
