@@ -8,14 +8,7 @@ open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.EditorServices
 
 let checker =
-    FSharpChecker.Create(
-        keepAllBackgroundResolutions = true,
-        keepAssemblyContents = true
-    )
-
-let dumpOpts (opts: FSharpProjectOptions) =
-    printfn "FSharpProjectOptions.OtherOptions ->"
-    opts.OtherOptions |> Array.iter (printfn "%s")
+    FSharpChecker.Create(keepAllBackgroundResolutions = true, keepAssemblyContents = true)
 
 let loadProject file =
     async {
@@ -31,18 +24,6 @@ let loadProject file =
                 otherFlags = [| "--targetprofile:netstandard" |]
             )
 
-        let newOO =
-            opts.OtherOptions
-            |> Array.map
-                (fun i ->
-                    if i.StartsWith("-r:") then
-                        let path =
-                            i.Split("-r:", StringSplitOptions.RemoveEmptyEntries).[0]
-
-                        sprintf "-r:%s" (IO.FileInfo(path).FullName)
-                    else
-                        i)
-        // dumpOpts opts
         return file, opts
     }
     |> Async.RunSynchronously
@@ -67,9 +48,9 @@ let getAllEntities (checkResults: FSharpCheckFileResults) (publicOnly: bool) : A
     try
         let res =
             [ yield!
-                AssemblyContent.GetAssemblySignatureContent
-                    AssemblyContentType.Full
-                    checkResults.PartialAssemblySignature
+                  AssemblyContent.GetAssemblySignatureContent
+                      AssemblyContentType.Full
+                      checkResults.PartialAssemblySignature
               let ctx = checkResults.ProjectContext
 
               let assembliesByFileName =
