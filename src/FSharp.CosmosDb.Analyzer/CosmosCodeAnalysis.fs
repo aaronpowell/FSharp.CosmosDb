@@ -63,11 +63,10 @@ module CosmosCodeAnalysis =
             | "Cosmos.query" ->
                 let names =
                     typeNames
-                    |> List.choose
-                        (fun typeName ->
-                            match typeName with
-                            | SynType.LongIdent (LongIdentWithDots (listOfIds, _)) -> dotConcat listOfIds |> Some
-                            | _ -> None)
+                    |> List.choose (fun typeName ->
+                        match typeName with
+                        | SynType.LongIdent (LongIdentWithDots (listOfIds, _)) -> dotConcat listOfIds |> Some
+                        | _ -> None)
 
                 Some(names, query, queryRange)
             | _ -> None
@@ -134,9 +133,11 @@ module CosmosCodeAnalysis =
 
     let (|Parameters|_|) =
         function
-        | Apply ("Cosmos.parameters", SynExpr.ArrayOrListOfSeqExpr (_, listExpr, _), _, _) ->
+        | Apply ("Cosmos.parameters", SynExpr.ArrayOrListComputed (_, listExpr, _), _, _) ->
             match listExpr with
-            | SynExpr.CompExpr (_, _, compExpr, compRange) -> Some(readParameters compExpr, compRange)
+            | ParameterTuple (name, range, func, funcRange, appRange) ->
+                Some([ name, range, func, funcRange, appRange ], funcRange)
+            | SynExpr.ComputationExpr (_, compExpr, compRange) -> Some(readParameters compExpr, compRange)
             | _ -> None
         | _ -> None
 
@@ -173,13 +174,12 @@ module CosmosCodeAnalysis =
         | Parameters (parameters, range) ->
             let queryParams =
                 parameters
-                |> List.map
-                    (fun (name, range, func, funcRange, appRange) ->
-                        { name = name
-                          range = range
-                          paramFunc = func
-                          paramFuncRange = funcRange
-                          applicationRange = appRange })
+                |> List.map (fun (name, range, func, funcRange, appRange) ->
+                    { name = name
+                      range = range
+                      paramFunc = func
+                      paramFuncRange = funcRange
+                      applicationRange = appRange })
 
             [ CosmosAnalyzerBlock.Parameters(queryParams, range) ]
 
@@ -214,27 +214,24 @@ module CosmosCodeAnalysis =
                 [ { blocks = blocks; range = range } ]
 
             | Query (query, queryRange) ->
-                let blocks =
-                    [ CosmosAnalyzerBlock.Query(query, queryRange) ]
+                let blocks = [ CosmosAnalyzerBlock.Query(query, queryRange) ]
 
                 [ { blocks = blocks; range = range } ]
 
             | LiteralQuery (identifier, queryRange) ->
-                let blocks =
-                    [ CosmosAnalyzerBlock.LiteralQuery(identifier, queryRange) ]
+                let blocks = [ CosmosAnalyzerBlock.LiteralQuery(identifier, queryRange) ]
 
                 [ { blocks = blocks; range = range } ]
 
             | Parameters (parameters, _) ->
                 let queryParams =
                     parameters
-                    |> List.map
-                        (fun (name, range, func, funcRange, appRange) ->
-                            { name = name
-                              range = range
-                              paramFunc = func
-                              paramFuncRange = funcRange
-                              applicationRange = appRange })
+                    |> List.map (fun (name, range, func, funcRange, appRange) ->
+                        { name = name
+                          range = range
+                          paramFunc = func
+                          paramFuncRange = funcRange
+                          applicationRange = appRange })
 
                 let blocks =
                     [ yield! findQuery funcExpr

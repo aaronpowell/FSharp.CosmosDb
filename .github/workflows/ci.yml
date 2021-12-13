@@ -2,7 +2,7 @@ name: CI build
 
 env:
   OUTPUT_PATH: ${{ github.workspace }}/.nupkg
-  DOTNET_VERSION: "5.0.101"
+  DOTNET_VERSION: "6.0.x"
   GITHUB_SOURCE: "https://nuget.pkg.github.com/aaronpowell/index.json"
   CONFIGURATION: "Debug"
 

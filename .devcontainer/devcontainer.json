@@ -1,5 +1,3 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.166.0/containers/dotnet-fsharp
 {
 	"name": "FSharp.CosmosDB",
 	"build": {
@@ -9,12 +7,13 @@
 			"INSTALL_NODE": "false",
 			"NODE_VERSION": "lts/*",
 			"INSTALL_AZURE_CLI": "true",
-			"UPGRADE_PACKAGES": "false"
+			"UPGRADE_PACKAGES": "false",
+			"VARIANT": "6.0"
 		}
 	},
 
 	"settings": {
-		"terminal.integrated.shell.linux": "/bin/bash"
+		"terminal.integrated.defaultProfile.linux": "zsh"
 	},
 
 	// Add the IDs of extensions you want installed when the container is created.

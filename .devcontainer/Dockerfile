@@ -1,4 +1,5 @@
-FROM mcr.microsoft.com/vscode/devcontainers/dotnetcore:0-5.0
+ARG VARIANT="6.0-bullseye-slim"
+FROM mcr.microsoft.com/vscode/devcontainers/dotnet:0-${VARIANT}
 
 # [Option] Install Node.js
 ARG INSTALL_NODE="true"

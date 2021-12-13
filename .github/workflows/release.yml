@@ -2,7 +2,7 @@ name: Release build
 
 env:
   OUTPUT_PATH: ${{ github.workspace }}/.nupkg
-  DOTNET_VERSION: "5.0.201"
+  DOTNET_VERSION: "6.0.x"
   GITHUB_SOURCE: "https://nuget.pkg.github.com/aaronpowell/index.json"
   NUGET_SOURCE: "https://api.nuget.org/v3/index.json"
 

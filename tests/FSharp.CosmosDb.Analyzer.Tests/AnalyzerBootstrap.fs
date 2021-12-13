@@ -10,8 +10,7 @@ open FSharp.Compiler.EditorServices
 let checker =
     FSharpChecker.Create(
         keepAllBackgroundResolutions = true,
-        keepAssemblyContents = true,
-        ImplicitlyStartBackgroundWork = true
+        keepAssemblyContents = true
     )
 
 let dumpOpts (opts: FSharpProjectOptions) =

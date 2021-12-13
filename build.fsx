@@ -11,6 +11,8 @@ open Fake.BuildServer
 
 Target.initEnvironment ()
 
+let dotnetVersion = "net6.0"
+
 let sln = "./FSharp.CosmosDb.sln"
 let nupkgPath = "./.nupkg"
 
@@ -41,138 +43,129 @@ let getVersionNumber (changeLog: Changelog.ChangelogEntry) (targets: Target list
     | (true, false) -> sprintf "%s-ci-%s" changeLog.NuGetVersion GitHubActions.Environment.RunId
     | (_, _) -> sprintf "%s-local" changeLog.NuGetVersion
 
-Target.create
-    "Clean"
-    (fun _ ->
-        DotNet.exec id "clean" "" |> ignore
-        !!nupkgPath |> Shell.cleanDirs)
+Target.create "Clean" (fun _ ->
+    DotNet.exec id "clean" "" |> ignore
+    !!nupkgPath |> Shell.cleanDirs)
 
 Target.create "Restore" (fun _ -> DotNet.restore id sln)
 
-Target.create
-    "Build"
-    (fun ctx ->
-        let changelog = getChangelog ()
+Target.create "Build" (fun ctx ->
+    let changelog = getChangelog ()
 
-        let args =
-            [ sprintf "/p:PackageVersion=%s" (getVersionNumber changelog (ctx.Context.AllExecutingTargets))
-              "--no-restore" ]
+    let args =
+        [ sprintf "/p:PackageVersion=%s" (getVersionNumber changelog (ctx.Context.AllExecutingTargets))
+          "--no-restore" ]
 
-        DotNet.build
-            (fun c ->
-                { c with
-                      Configuration = configuration (ctx.Context.AllExecutingTargets)
-                      Common = c.Common |> DotNet.Options.withAdditionalArgs args })
-            sln)
+    DotNet.build
+        (fun c ->
+            { c with
+                Configuration = configuration (ctx.Context.AllExecutingTargets)
+                Common = c.Common |> DotNet.Options.withAdditionalArgs args })
+        sln)
 
-Target.create
-    "Publish"
-    (fun ctx ->
-        let changelog = getChangelog ()
+Target.create "Publish" (fun ctx ->
+    let changelog = getChangelog ()
 
-        let args =
-            [ sprintf "/p:PackageVersion=%s" (getVersionNumber changelog (ctx.Context.AllExecutingTargets))
-              "--no-restore"
-              "--no-build" ]
+    let args =
+        [ sprintf "/p:PackageVersion=%s" (getVersionNumber changelog (ctx.Context.AllExecutingTargets))
+          "--no-restore"
+          "--no-build" ]
 
-        DotNet.publish
-            (fun c ->
-                { c with
-                      Configuration = configuration (ctx.Context.AllExecutingTargets)
-                      Common = c.Common |> DotNet.Options.withAdditionalArgs args })
-            sln)
+    DotNet.publish
+        (fun c ->
+            { c with
+                Configuration = configuration (ctx.Context.AllExecutingTargets)
+                Common = c.Common |> DotNet.Options.withAdditionalArgs args })
+        sln)
 
-Target.create
-    "Package"
-    (fun ctx ->
-        let changelog = getChangelog ()
+Target.create "Package" (fun ctx ->
+    let changelog = getChangelog ()
 
-        let version =
-            ctx.Context.AllExecutingTargets
-            |> getVersionNumber changelog
+    let version =
+        ctx.Context.AllExecutingTargets
+        |> getVersionNumber changelog
 
-        let args =
-            [ sprintf "/p:PackageVersion=%s" version
-              sprintf "/p:PackageReleaseNotes=\"%s\"" (sprintf "%O" changelog) ]
+    let args =
+        [ sprintf "/p:PackageVersion=%s" version
+          sprintf "/p:PackageReleaseNotes=\"%s\"" (sprintf "%O" changelog) ]
 
-        DotNet.pack
-            (fun c ->
-                { c with
-                      Configuration = configuration (ctx.Context.AllExecutingTargets)
-                      OutputPath = Some nupkgPath
-                      Common = c.Common |> DotNet.Options.withAdditionalArgs args })
-            sln
+    DotNet.pack
+        (fun c ->
+            { c with
+                Configuration = configuration (ctx.Context.AllExecutingTargets)
+                OutputPath = Some nupkgPath
+                Common = c.Common |> DotNet.Options.withAdditionalArgs args })
+        sln
 
-        let analyzerNupkg =
-            nupkgPath
-            </> (sprintf "FSharp.CosmosDb.Analyzer.%s.nupkg" version)
+    let analyzerNupkg =
+        nupkgPath
+        </> (sprintf "FSharp.CosmosDb.Analyzer.%s.nupkg" version)
 
-        Zip.unzip (nupkgPath </> "analyzerNupkgContents") analyzerNupkg
+    Zip.unzip (nupkgPath </> "analyzerNupkgContents") analyzerNupkg
 
-        Directory.ensure (nupkgPath </> "analyzer" </> "lib" </> "net5.0")
+    Directory.ensure (
+        nupkgPath
+        </> "analyzer"
+        </> "lib"
+        </> dotnetVersion
+    )
 
-        Shell.copy
-            (nupkgPath </> "analyzer")
-            [ (nupkgPath
-               </> "analyzerNupkgContents"
-               </> "FSharp.CosmosDb.Analyzer.nuspec") ]
+    Shell.copy
+        (nupkgPath </> "analyzer")
+        [ (nupkgPath
+           </> "analyzerNupkgContents"
+           </> "FSharp.CosmosDb.Analyzer.nuspec") ]
 
-        let buildConfig =
-            if isRelease ctx.Context.AllExecutingTargets then
-                "Release"
-            else
-                "Debug"
+    let buildConfig =
+        if isRelease ctx.Context.AllExecutingTargets then
+            "Release"
+        else
+            "Debug"
 
-        Shell.copyDir
-            (nupkgPath </> "analyzer" </> "lib" </> "net5.0")
-            ("src"
-             </> "FSharp.CosmosDb.Analyzer"
-             </> "bin"
-             </> buildConfig
-             </> "net5.0"
-             </> "publish")
-            (fun _ -> true)
+    Shell.copyDir
+        (nupkgPath
+         </> "analyzer"
+         </> "lib"
+         </> dotnetVersion)
+        ("src"
+         </> "FSharp.CosmosDb.Analyzer"
+         </> "bin"
+         </> buildConfig
+         </> dotnetVersion
+         </> "publish")
+        (fun _ -> true)
 
-        File.delete analyzerNupkg
-        ZipFile.CreateFromDirectory((nupkgPath </> "analyzer"), analyzerNupkg))
+    File.delete analyzerNupkg
+    ZipFile.CreateFromDirectory((nupkgPath </> "analyzer"), analyzerNupkg))
 
-Target.create
-    "PackageVersion"
-    (fun _ ->
-        let version = getChangelog ()
-        printfn "The version is %s" version.NuGetVersion)
+Target.create "PackageVersion" (fun _ ->
+    let version = getChangelog ()
+    printfn "The version is %s" version.NuGetVersion)
 
-Target.create
-    "Changelog"
-    (fun _ ->
-        let changelog = getChangelog ()
-        Directory.ensure nupkgPath
+Target.create "Changelog" (fun _ ->
+    let changelog = getChangelog ()
+    Directory.ensure nupkgPath
 
-        [| sprintf "%O" changelog |]
-        |> File.append (nupkgPath </> "changelog.md"))
+    [| sprintf "%O" changelog |]
+    |> File.append (nupkgPath </> "changelog.md"))
 
-Target.create
-    "Test"
-    (fun _ ->
-        DotNet.exec
-            (fun p ->
-                { p with
-                      Timeout = Some(System.TimeSpan.FromMinutes 10.) })
-            "run"
-            """--project "./tests/FSharp.CosmosDb.Analyzer.Tests/FSharp.CosmosDb.Analyzer.Tests.fsproj" -- --fail-on-focused-tests --debug --summary"""
-        |> fun r ->
-            if not r.OK then
-                failwithf "Errors while running LSP tests:\n%s" (r.Errors |> String.concat "\n\t"))
+Target.create "Test" (fun _ ->
+    DotNet.exec
+        (fun p -> { p with Timeout = Some(System.TimeSpan.FromMinutes 10.) })
+        "run"
+        """--project "./tests/FSharp.CosmosDb.Analyzer.Tests/FSharp.CosmosDb.Analyzer.Tests.fsproj" -- --fail-on-focused-tests --debug --summary"""
+    |> fun r ->
+        if not r.OK then
+            failwithf "Errors while running LSP tests:\n%s" (r.Errors |> String.concat "\n\t"))
 
-Target.create
-    "RunAnalyzer"
-    (fun ctx ->
-        let args =
-            sprintf
-                "--project samples/FSharp.CosmosDb.Samples/FSharp.CosmosDb.Samples.fsproj --analyzers-path src/FSharp.CosmosDb.Analyzer/bin/%A/net5.0/publish --verbose"
-                (configuration (ctx.Context.AllExecutingTargets))
+Target.create "RunAnalyzer" (fun ctx ->
+    let args =
+        sprintf
+            "--project samples/FSharp.CosmosDb.Samples/FSharp.CosmosDb.Samples.fsproj --analyzers-path src/FSharp.CosmosDb.Analyzer/bin/%A/%s/publish --verbose"
+            (configuration (ctx.Context.AllExecutingTargets))
+            dotnetVersion
 
-        DotNet.exec id "fsharp-analyzers" args |> ignore)
+    DotNet.exec id "fsharp-analyzers" args |> ignore)
 
 Target.create "Default" ignore
 Target.create "Release" ignore
