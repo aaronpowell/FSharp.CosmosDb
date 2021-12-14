@@ -92,9 +92,13 @@ let createContext (file, text: string, p: FSharpParseFileResults, c: FSharpCheck
     | _ -> None
 
 let context proj =
+    printfn "proj path is %s" proj
+
     let path =
         Path.Combine(Environment.CurrentDirectory, proj)
         |> Path.GetFullPath
+
+    printfn "Normalised path to %s" path
 
     loadProject path
     |> typeCheckFile
