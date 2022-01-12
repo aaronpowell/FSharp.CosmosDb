@@ -9,10 +9,6 @@ let tests =
     testList
         "Query API can be analyzed"
         [ test "Finds all the operations in a file" {
-              printfn "Line: %s" __LINE__
-              printfn "Source Directory: %s" __SOURCE_DIRECTORY__
-              printfn "Source File: %s" __SOURCE_FILE__
-
               match context (find "../samples/querySample.fs") with
               | None -> failwith "Could not load test script"
               | Some context ->

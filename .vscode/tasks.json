@@ -35,16 +35,11 @@
       "label": "test",
       "command": "dotnet",
       "type": "shell",
-      "args": ["test"],
-      "group": {
-        "isDefault": true,
-        "kind": "test"
-      },
+      "args": ["fake", "run", "./build.fsx", "--target", "Test"],
       "presentation": {
-        "reveal": "always"
+        "reveal": "silent"
       },
-      "problemMatcher": "$msCompile",
-      "dependsOn": ["build"]
+      "problemMatcher": "$msCompile"
     },
     {
       "label": "run analyzers",
