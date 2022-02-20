@@ -189,7 +189,7 @@ let execUpdate (getClient: ConnectionOperation -> CosmosClient) (op: UpdateOp<'T
 
     | None -> failwith "Unable to read from the container to get the item for updating"
 
-let execDelete (getClient: ConnectionOperation -> CosmosClient) (op: DeleteOp<'T>) =
+let execDeleteItem (getClient: ConnectionOperation -> CosmosClient) (op: DeleteItemOp<'T>) =
     let connInfo = op.Connection
     let client = getClient connInfo
 
@@ -216,7 +216,29 @@ let execDelete (getClient: ConnectionOperation -> CosmosClient) (op: DeleteOp<'T
         |> AsyncSeq.ofSeqAsync
 
     | None -> failwith "Unable to read from the container to get the item for updating"
+    
+let execDeleteContainer (getClient: ConnectionOperation -> CosmosClient) (op: DeleteContainerOp<'T>) =
+    let connInfo = op.Connection
+    let client = getClient connInfo
 
+    let result =
+        maybe {
+            let! databaseId = connInfo.DatabaseId
+            let! containerName = connInfo.ContainerName
+
+            let db = client.GetDatabase databaseId
+
+            let container = db.GetContainer containerName
+
+            return
+                container.DeleteContainerAsync ()
+                |> Async.AwaitTask
+        }
+
+    match result with
+    | Some result -> result
+    | None -> failwith "Unable to delete container"
+    
 let execRead (getClient: ConnectionOperation -> CosmosClient) (op: ReadOp<'T>) =
     let connInfo = op.Connection
     let client = getClient connInfo

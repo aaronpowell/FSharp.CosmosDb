@@ -1,5 +1,6 @@
 namespace FSharp.CosmosDb
 
+open FSharp.CosmosDb
 open Microsoft.Azure.Cosmos
 open System.Threading
 open System.Threading.Tasks
@@ -100,10 +101,13 @@ type UpdateOp<'T> =
       PartitionKey: string
       Updater: 'T -> 'T }
 
-type DeleteOp<'T> =
+type DeleteItemOp<'T> =
     { Connection: ConnectionOperation
       Id: string
       PartitionKey: string }
+    
+type DeleteContainerOp<'T> =
+    { Connection: ConnectionOperation }
 
 type ReadOp<'T> =
     { Connection: ConnectionOperation
@@ -113,15 +117,6 @@ type ReadOp<'T> =
 type ReplaceOp<'T> =
     { Connection: ConnectionOperation
       Item: 'T }
-
-type ContainerOperation<'T> =
-    | Query of QueryOp<'T>
-    | Insert of InsertOp<'T>
-    | Update of UpdateOp<'T>
-    | Delete of DeleteOp<'T>
-    | Upsert of UpsertOp<'T>
-    | Read of ReadOp<'T>
-    | Replace of ReplaceOp<'T>
 
 type ChangeFeedOptions<'T> =
     { Connection: ConnectionOperation
