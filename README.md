@@ -100,9 +100,9 @@ let main argv =
     } |> Async.RunSynchronously
 ```
 
-### Delete
+### DeleteItem
 
-```fsharp
+```f#
 open FSharp.CosmosDb
 
 let connStr = "..."
@@ -116,6 +116,19 @@ let updateUser id partitionKey =
     |> Cosmos.execAsync
 ```
 
+### DeleteContainer
+```f#
+open FSharp.CosmosDb
+
+let connStr = "..."
+
+connStr
+|> Cosmos.container "ContainerName"
+|> Cosmos.deleteContainer
+|> Cosmos.execAsync
+|> Async.Ignore
+```
+    
 # FSharp.CosmosDb.Analyzer 💡
 
 [![NuGet Badge - FSharp.CosmosDb](https://buildstats.info/nuget/FSharp.CosmosDb)](https://www.nuget.org/packages/FSharp.CosmosDb)
