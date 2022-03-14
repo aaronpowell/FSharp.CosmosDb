@@ -50,7 +50,7 @@ let updateFamily conn id pk =
 
 let deleteFamily conn id pk =
     conn
-    |> Cosmos.delete<Family> id pk
+    |> Cosmos.deleteItem<Family> id pk
     |> Cosmos.execAsync
 
 [<EntryPoint>]
@@ -131,6 +131,13 @@ let main argv =
             |> AsyncSeq.map (fun f -> { f with LastName = "Powellz" })
             |> AsyncSeq.map (fun f -> conn |> Cosmos.replace f |> Cosmos.execAsync)
             |> AsyncSeq.iter (fun f -> printfn "Replaced: %A" f)
+            
+        do!
+            conn
+            |> Cosmos.container "Family"
+            |> Cosmos.deleteContainer
+            |> Cosmos.execAsync
+            |> Async.Ignore
 
         return 0 // return an integer exit code
     }
