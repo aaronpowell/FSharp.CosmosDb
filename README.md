@@ -116,7 +116,22 @@ let updateUser id partitionKey =
     |> Cosmos.execAsync
 ```
 
-### DeleteContainer
+### Create Container
+
+```f#
+open FSharp.CosmosDb
+
+let connStr = "..."
+
+connStr
+|> Cosmos.container "ContainerName"
+|> Cosmos.createContainer
+|> Cosmos.execAsync
+|> Async.Ignore
+```
+
+### Delete Container
+
 ```f#
 open FSharp.CosmosDb
 
