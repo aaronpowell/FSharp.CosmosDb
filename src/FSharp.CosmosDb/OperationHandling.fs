@@ -217,6 +217,28 @@ let execDeleteItem (getClient: ConnectionOperation -> CosmosClient) (op: DeleteI
 
     | None -> failwith "Unable to read from the container to get the item for updating"
     
+let execCreateContainer (getClient: ConnectionOperation -> CosmosClient) (op: CreateContainerOp<'T>) =
+    let connInfo = op.Connection
+    let client = getClient connInfo
+
+    let result =
+        maybe {
+            let! databaseId = connInfo.DatabaseId
+            let! containerName = connInfo.ContainerName
+
+            let db = client.GetDatabase databaseId
+
+            let containerCreation = db.CreateContainerAsync(containerName, "id")
+
+            return
+                containerCreation
+                |> Async.AwaitTask
+        }
+
+    match result with
+    | Some result -> result
+    | None -> failwith "Unable to create container"
+    
 let execDeleteContainer (getClient: ConnectionOperation -> CosmosClient) (op: DeleteContainerOp<'T>) =
     let connInfo = op.Connection
     let client = getClient connInfo

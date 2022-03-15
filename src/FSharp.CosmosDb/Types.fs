@@ -106,6 +106,9 @@ type DeleteItemOp<'T> =
       Id: string
       PartitionKey: string }
     
+type CreateContainerOp<'T> =
+    { Connection: ConnectionOperation }
+    
 type DeleteContainerOp<'T> =
     { Connection: ConnectionOperation }
 

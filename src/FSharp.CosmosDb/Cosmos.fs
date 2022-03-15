@@ -85,7 +85,12 @@ module Cosmos =
         { DeleteItemOp.Connection = op
           Id = id
           PartitionKey = partitionKey }
-            
+        
+    // --- CREATE CONTAINER --- //
+
+    let createContainer<'T> op : CreateContainerOp<'T> =
+        { CreateContainerOp.Connection = op }
+        
     // --- DELETE CONTAINER --- //
 
     let deleteContainer<'T> op : DeleteContainerOp<'T> =
@@ -223,6 +228,7 @@ type Cosmos =
     static member execAsync op = OperationHandling.execInsert Cosmos.getClient op
     static member execAsync op = OperationHandling.execUpdate Cosmos.getClient op
     static member execAsync op = OperationHandling.execDeleteItem Cosmos.getClient op
+    static member execAsync op = OperationHandling.execCreateContainer Cosmos.getClient op
     static member execAsync op = OperationHandling.execDeleteContainer Cosmos.getClient op
     static member execAsync op = OperationHandling.execUpsert Cosmos.getClient op
     static member execAsync op = OperationHandling.execRead Cosmos.getClient op
