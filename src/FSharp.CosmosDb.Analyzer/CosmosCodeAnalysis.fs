@@ -266,7 +266,7 @@ module CosmosCodeAnalysis =
 
             | _ -> []
 
-        | SynExpr.LetOrUse (_, _, bindings, body, range) ->
+        | SynExpr.LetOrUse (_, _, bindings, body, range, _) ->
             [ yield! visitSyntacticExpression body range
               for binding in bindings do
                   yield! visitBinding binding ]
@@ -275,7 +275,7 @@ module CosmosCodeAnalysis =
 
     and visitBinding (binding: SynBinding) : CosmosOperation list =
         match binding with
-        | SynBinding (_, _, _, _, _, _, _, _, _, expr, range, _) -> visitSyntacticExpression expr range
+        | SynBinding (_, _, _, _, _, _, _, _, _, expr, range, _, _) -> visitSyntacticExpression expr range
 
 
     let findOperations (ctx: Context) =
