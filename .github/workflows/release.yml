@@ -34,7 +34,12 @@ jobs:
           name: packages
           path: ${{ env.OUTPUT_PATH }}
 
-      - run: echo "tag=${GITHUB_REF##*/v}" >> $GITHUB_ENV
+      - name: Set tag env var (windows)
+        if: runner.os == 'Windows'
+        run: echo ("tag=" + ($env:GITHUB_REF -replace '.*v')) >> $env:GITHUB_ENV
+      - name: Set tag env var (non-windows)
+        if: runner.os != 'Windows'
+        run: echo "tag=${GITHUB_REF##*/v}" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release
@@ -48,7 +53,7 @@ jobs:
           prerelease: false
           body_path: ${{ env.OUTPUT_PATH }}/changelog.md
       - run: echo ${{ steps.create_release.outputs.id }} >> release.txt
-      - name: Upload
+      - name: Upload release_id
         uses: actions/upload-artifact@v2
         with:
             name: release_id
