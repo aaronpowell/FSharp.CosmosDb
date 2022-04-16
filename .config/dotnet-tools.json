@@ -3,25 +3,25 @@
   "isRoot": true,
   "tools": {
     "paket": {
-      "version": "6.2.1",
+      "version": "7.1.4",
       "commands": [
         "paket"
       ]
     },
     "fake-cli": {
-      "version": "5.21.0-alpha004",
+      "version": "5.22.0",
       "commands": [
         "fake"
       ]
     },
     "fantomas-tool": {
-      "version": "4.6.0-alpha-010",
+      "version": "4.7.6",
       "commands": [
         "fantomas"
       ]
     },
     "fsharp-analyzers": {
-      "version": "0.8.0",
+      "version": "0.11.0",
       "commands": [
         "fsharp-analyzers"
       ]
