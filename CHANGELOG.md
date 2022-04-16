@@ -1,6 +1,6 @@
 # Changelog for `FSharp.CosmosDb`
 
-## [1.0.0] - unreleased
+## [1.0.0] - 2022-04-16
 
 **This release has breaking changes from pre-v1**
 
@@ -12,7 +12,7 @@
 - `execBatchAsync` now accepts a batch size so it can properly paginate
 - Updated analyzer dependencies
 - The record representing a connection to Cosmos is now a disposable object
-- Support for .NET 6
+- Upgraded .NET 6
 
 ### Added
 
