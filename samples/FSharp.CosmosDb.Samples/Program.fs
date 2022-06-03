@@ -138,6 +138,13 @@ let main argv =
             |> Cosmos.deleteContainer
             |> Cosmos.execAsync
             |> Async.Ignore
+            
+        do!
+            conn
+            |> Cosmos.container "Family"
+            |> Cosmos.deleteContainerIfExists
+            |> Cosmos.execAsync
+            |> Async.Ignore
 
         return 0 // return an integer exit code
     }

@@ -54,6 +54,10 @@ module Cosmos =
 
     let parameters arr op =
         { op with QueryOp.Parameters = op.Parameters @ arr }
+        
+    // --- DATABASE EXISTS --- //
+    let databaseExists<'T> op =
+        { CheckIfDatabaseExistsOp.Connection = op }
 
     // --- INSERT --- //
 
@@ -85,11 +89,24 @@ module Cosmos =
         { DeleteItemOp.Connection = op
           Id = id
           PartitionKey = partitionKey }
+        
+    // --- GET CONTAINER PROPERTIES --- //
+    let getContainerProperties op =
+        { GetContainerPropertiesOp.Connection = op }
+        
+    // --- CONTAINER EXISTS --- //
+    let containerExists op =
+        { CheckIfContainerExistsOp.Connection = op }
             
     // --- DELETE CONTAINER --- //
 
     let deleteContainer<'T> op : DeleteContainerOp<'T> =
         { DeleteContainerOp.Connection = op }
+
+    // --- DELETE CONTAINER IF EXISTS --- //
+
+    let deleteContainerIfExists op : DeleteContainerIfExistsOp =
+        { DeleteContainerIfExistsOp.Connection = op }
 
     // --- READ --- //
 
@@ -220,10 +237,14 @@ module Cosmos =
 type Cosmos =
     static member private getClient (connInfo: ConnectionOperation) = connInfo.GetClient()
     static member execAsync (op: QueryOp<'T>) = OperationHandling.execQuery Cosmos.getClient op
+    static member execAsync op = OperationHandling.execCheckIfDatabaseExists Cosmos.getClient op
     static member execAsync op = OperationHandling.execInsert Cosmos.getClient op
     static member execAsync op = OperationHandling.execUpdate Cosmos.getClient op
     static member execAsync op = OperationHandling.execDeleteItem Cosmos.getClient op
+    static member execAsync op = OperationHandling.execGetContainerProperties Cosmos.getClient op
+    static member execAsync op = OperationHandling.execCheckIfContainerExists Cosmos.getClient op
     static member execAsync op = OperationHandling.execDeleteContainer Cosmos.getClient op
+    static member execAsync op = OperationHandling.execDeleteContainerIfExists Cosmos.getClient op
     static member execAsync op = OperationHandling.execUpsert Cosmos.getClient op
     static member execAsync op = OperationHandling.execRead Cosmos.getClient op
     static member execAsync op = OperationHandling.execReplace Cosmos.getClient op
