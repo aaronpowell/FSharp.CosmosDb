@@ -47,65 +47,78 @@ module Cosmos =
           Query = None
           Parameters = [] }
 
-    let query<'T> query op : ContainerOperation<'T> =
-        Query
-            { defaultQueryOp () with
-                  Query = Some query
-                  Connection = op }
+    let query<'T> query op : QueryOp<'T> =
+        { defaultQueryOp () with
+              Query = Some query
+              Connection = op }
 
     let parameters arr op =
-        match op with
-        | Query q ->
-            Query
-                { q with
-                      Parameters = q.Parameters @ arr }
-        | _ -> failwith "Only the Query discriminated union supports parameters"
+        { op with QueryOp.Parameters = op.Parameters @ arr }
+        
+    // --- DATABASE EXISTS --- //
+    let databaseExists<'T> op =
+        { CheckIfDatabaseExistsOp.Connection = op }
 
     // --- INSERT --- //
 
     let insertMany<'T> (values: 'T list) op =
-        Insert { Connection = op; Values = values }
+        { InsertOp.Connection = op; Values = values }
 
     let insert<'T> (value: 'T) op =
-        Insert { Connection = op; Values = [ value ] }
+        { InsertOp.Connection = op; Values = [ value ] }
 
     // --- INSERT --- //
 
     let upsertMany<'T> (values: 'T list) op =
-        Upsert { Connection = op; Values = values }
+        { UpsertOp.Connection = op; Values = values }
 
     let upsert<'T> (value: 'T) op =
-        Upsert { Connection = op; Values = [ value ] }
+        { UpsertOp.Connection = op; Values = [ value ] }
 
     // --- UPDATE --- //
 
     let update<'T> id partitionKey (updater: 'T -> 'T) op =
-        Update
-            { Connection = op
-              Id = id
-              PartitionKey = partitionKey
-              Updater = updater }
+        { UpdateOp.Connection = op
+          Id = id
+          PartitionKey = partitionKey
+          Updater = updater }
 
-    // --- DELETE --- //
+    // --- DELETE ITEM --- //
 
-    let delete<'T> id partitionKey op =
-        Delete
-            { Connection = op
-              Id = id
-              PartitionKey = partitionKey }
+    let deleteItem<'T> id partitionKey op =
+        { DeleteItemOp.Connection = op
+          Id = id
+          PartitionKey = partitionKey }
+        
+    // --- GET CONTAINER PROPERTIES --- //
+    let getContainerProperties op =
+        { GetContainerPropertiesOp.Connection = op }
+        
+    // --- CONTAINER EXISTS --- //
+    let containerExists op =
+        { CheckIfContainerExistsOp.Connection = op }
+            
+    // --- DELETE CONTAINER --- //
+
+    let deleteContainer<'T> op : DeleteContainerOp<'T> =
+        { DeleteContainerOp.Connection = op }
+
+    // --- DELETE CONTAINER IF EXISTS --- //
+
+    let deleteContainerIfExists op : DeleteContainerIfExistsOp =
+        { DeleteContainerIfExistsOp.Connection = op }
 
     // --- READ --- //
 
     let read id partitionKey op =
-        Read
-            { Connection = op
-              Id = id
-              PartitionKey = partitionKey }
+        { ReadOp.Connection = op
+          Id = id
+          PartitionKey = partitionKey }
 
     // --- REPLACE --- //
 
     let replace<'T> (item: 'T) op =
-        Replace { Connection = op; Item = item }
+        { ReplaceOp.Connection = op; Item = item }
 
     // --- Execute --- //
 
@@ -113,23 +126,10 @@ module Cosmos =
 
     let dispose (connInfo: ConnectionOperation) = (connInfo :> IDisposable).Dispose()
 
-    let execAsync<'T> (op: ContainerOperation<'T>) =
-        match op with
-        | Query op -> OperationHandling.execQuery getClient op
-        | Insert op -> OperationHandling.execInsert getClient op
-        | Update op -> OperationHandling.execUpdate getClient op
-        | Delete op -> OperationHandling.execDelete getClient op
-        | Upsert op -> OperationHandling.execUpsert getClient op
-        | Read op -> OperationHandling.execRead getClient op
-        | Replace op -> OperationHandling.execReplace getClient op
-
-    let execBatchAsync<'T> batchSize (op: ContainerOperation<'T>) =
-        match op with
-        | Query op ->
-            let queryOps = QueryRequestOptions()
-            queryOps.MaxItemCount <- batchSize
-            OperationHandling.execQueryBatch getClient op queryOps
-        | _ -> failwith "Batch return operation only supported with query operations, use `execAsync` instead."
+    let execBatchAsync<'T> batchSize op =
+        let queryOps = QueryRequestOptions()
+        queryOps.MaxItemCount <- batchSize
+        OperationHandling.execQueryBatch getClient op queryOps
 
     // --- Access Cosmos APIs directly --- //
 
@@ -233,3 +233,18 @@ module Cosmos =
                 processor.Build()
             | None ->
                 failwith "Unable to connect the change feed. Ensure the container and lease container info is all set"
+                
+type Cosmos =
+    static member private getClient (connInfo: ConnectionOperation) = connInfo.GetClient()
+    static member execAsync (op: QueryOp<'T>) = OperationHandling.execQuery Cosmos.getClient op
+    static member execAsync op = OperationHandling.execCheckIfDatabaseExists Cosmos.getClient op
+    static member execAsync op = OperationHandling.execInsert Cosmos.getClient op
+    static member execAsync op = OperationHandling.execUpdate Cosmos.getClient op
+    static member execAsync op = OperationHandling.execDeleteItem Cosmos.getClient op
+    static member execAsync op = OperationHandling.execGetContainerProperties Cosmos.getClient op
+    static member execAsync op = OperationHandling.execCheckIfContainerExists Cosmos.getClient op
+    static member execAsync op = OperationHandling.execDeleteContainer Cosmos.getClient op
+    static member execAsync op = OperationHandling.execDeleteContainerIfExists Cosmos.getClient op
+    static member execAsync op = OperationHandling.execUpsert Cosmos.getClient op
+    static member execAsync op = OperationHandling.execRead Cosmos.getClient op
+    static member execAsync op = OperationHandling.execReplace Cosmos.getClient op

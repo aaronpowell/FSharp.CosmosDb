@@ -1,5 +1,6 @@
 namespace FSharp.CosmosDb
 
+open FSharp.CosmosDb
 open Microsoft.Azure.Cosmos
 open System.Threading
 open System.Threading.Tasks
@@ -86,6 +87,9 @@ type QueryOp<'T> =
       Query: string option
       Parameters: (string * obj) list }
 
+type CheckIfDatabaseExistsOp =
+    { Connection: ConnectionOperation }
+
 type InsertOp<'T> =
     { Connection: ConnectionOperation
       Values: 'T list }
@@ -100,11 +104,23 @@ type UpdateOp<'T> =
       PartitionKey: string
       Updater: 'T -> 'T }
 
-type DeleteOp<'T> =
+type DeleteItemOp<'T> =
     { Connection: ConnectionOperation
       Id: string
       PartitionKey: string }
+    
+type GetContainerPropertiesOp = 
+    { Connection: ConnectionOperation }
+    
+type CheckIfContainerExistsOp =
+    { Connection: ConnectionOperation }
+    
+type DeleteContainerOp<'T> =
+    { Connection: ConnectionOperation }
 
+type DeleteContainerIfExistsOp =
+    { Connection: ConnectionOperation }
+    
 type ReadOp<'T> =
     { Connection: ConnectionOperation
       Id: string
@@ -113,15 +129,6 @@ type ReadOp<'T> =
 type ReplaceOp<'T> =
     { Connection: ConnectionOperation
       Item: 'T }
-
-type ContainerOperation<'T> =
-    | Query of QueryOp<'T>
-    | Insert of InsertOp<'T>
-    | Update of UpdateOp<'T>
-    | Delete of DeleteOp<'T>
-    | Upsert of UpsertOp<'T>
-    | Read of ReadOp<'T>
-    | Replace of ReplaceOp<'T>
 
 type ChangeFeedOptions<'T> =
     { Connection: ConnectionOperation

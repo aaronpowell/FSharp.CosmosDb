@@ -66,6 +66,29 @@ let execQueryBatch (getClient: ConnectionOperation -> CosmosClient) (op: QueryOp
     | Some result -> result |> AsyncSeq.ofAsyncFeedIterator
     | None ->
         failwith "Unable to construct a query as some values are missing across the database, container name and query"
+        
+let execCheckIfDatabaseExists (getClient: ConnectionOperation -> CosmosClient) (op: CheckIfDatabaseExistsOp) =
+    let connInfo = op.Connection
+    let client = getClient connInfo
+    
+    use iterator = client.GetDatabaseQueryIterator<DatabaseProperties>()
+    
+    match connInfo.DatabaseId with
+    | Some databaseId ->
+            iterator
+            |> AsyncSeq.unfold (fun t ->
+                if iterator.HasMoreResults then
+                    Some (iterator.ReadNextAsync(), iterator)
+                else
+                    None)
+            |> AsyncSeq.collect (fun i ->
+                asyncSeq {
+                    let! c = i |> Async.AwaitTask
+                    for x in c do
+                        yield x
+                })
+            |> AsyncSeq.exists (fun i -> i.Id = databaseId)
+    | None -> failwith "failed to check if database exists"
 
 let execInsert (getClient: ConnectionOperation -> CosmosClient) (op: InsertOp<'T>) =
     let connInfo = op.Connection
@@ -189,7 +212,7 @@ let execUpdate (getClient: ConnectionOperation -> CosmosClient) (op: UpdateOp<'T
 
     | None -> failwith "Unable to read from the container to get the item for updating"
 
-let execDelete (getClient: ConnectionOperation -> CosmosClient) (op: DeleteOp<'T>) =
+let execDeleteItem (getClient: ConnectionOperation -> CosmosClient) (op: DeleteItemOp<'T>) =
     let connInfo = op.Connection
     let client = getClient connInfo
 
@@ -216,7 +239,77 @@ let execDelete (getClient: ConnectionOperation -> CosmosClient) (op: DeleteOp<'T
         |> AsyncSeq.ofSeqAsync
 
     | None -> failwith "Unable to read from the container to get the item for updating"
+    
+let execGetContainerProperties (getClient: ConnectionOperation -> CosmosClient) (op: GetContainerPropertiesOp) =
+    let connInfo = op.Connection
+    let client = getClient connInfo
+    
+    let containerName =
+        match connInfo.ContainerName with
+        | None -> failwith "ContainerName is not provided"
+        | Some containerName -> containerName
+    
+    use iterator =
+        match connInfo.DatabaseId with
+        | None -> failwith "DatabaseId is not provided"
+        | Some databaseId ->
+            client
+                .GetDatabase(databaseId)
+                .GetContainerQueryIterator<ContainerProperties>()
+    
+    iterator
+    |> AsyncSeq.unfold (fun t ->
+        if iterator.HasMoreResults then
+            Some (iterator.ReadNextAsync(), iterator)
+        else
+            None)
+    |> AsyncSeq.collect (fun i ->
+        asyncSeq {
+            let! c = i |> Async.AwaitTask
+            for x in c do
+                yield x
+        })
+    |> AsyncSeq.tryFind (fun i -> i.Id = containerName)
+    
+let execCheckIfContainerExists (getClient: ConnectionOperation -> CosmosClient) (op: CheckIfContainerExistsOp) =
+    async {
+        let! containerProperties = execGetContainerProperties getClient { Connection= op.Connection }
+        
+        return containerProperties
+               |> Option.isSome
+    }
+    
+let execDeleteContainer (getClient: ConnectionOperation -> CosmosClient) (op: DeleteContainerOp<'T>) =
+    let connInfo = op.Connection
+    let client = getClient connInfo
 
+    let result =
+        maybe {
+            let! databaseId = connInfo.DatabaseId
+            let! containerName = connInfo.ContainerName
+
+            let db = client.GetDatabase databaseId
+
+            let container = db.GetContainer containerName
+
+            return
+                container.DeleteContainerAsync ()
+                |> Async.AwaitTask
+        }
+
+    match result with
+    | Some result -> result
+    | None -> failwith "Unable to delete container"
+
+let execDeleteContainerIfExists (getClient: ConnectionOperation -> CosmosClient) (op: DeleteContainerIfExistsOp) =
+    async {
+        let! databaseExists = execCheckIfDatabaseExists getClient { Connection= op.Connection }
+        let! containerExists = execCheckIfContainerExists getClient { Connection= op.Connection }
+        if databaseExists && containerExists then
+            do! execDeleteContainer getClient { Connection= op.Connection }
+                |> Async.Ignore
+    }
+    
 let execRead (getClient: ConnectionOperation -> CosmosClient) (op: ReadOp<'T>) =
     let connInfo = op.Connection
     let client = getClient connInfo
