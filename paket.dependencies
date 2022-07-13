@@ -6,6 +6,7 @@ nuget FSharp.Analyzers.SDK
 nuget FSharp.Compiler.Service
 nuget FSharp.Control.AsyncSeq
 nuget Microsoft.Azure.Cosmos
+nuget Microsoft.Extensions.Configuration.EnvironmentVariables
 nuget System.Json
 nuget Microsoft.Extensions.Configuration
 nuget Microsoft.Extensions.Configuration.Json

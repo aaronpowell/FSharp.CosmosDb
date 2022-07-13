@@ -1,6 +1,8 @@
 {
-  "FSharp.enableAnalyzers": true,
-  "FSharp.analyzersPath": [
-    "./src/FSharp.CosmosDb.Analyzer/bin/Debug/net5.0/publish"
-  ]
+  "FSharp.inlayHints.parameterNames": false,
+  "FSharp.inlayHints.enabled": false
+  // "FSharp.enableAnalyzers": true,
+  // "FSharp.analyzersPath": [
+  //   "./src/FSharp.CosmosDb.Analyzer/bin/Debug/net6.0/publish"
+  // ]
 }

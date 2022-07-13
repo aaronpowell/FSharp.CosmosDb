@@ -125,6 +125,9 @@ NUGET
     Microsoft.Extensions.Configuration.Abstractions (6.0) - restriction: || (>= net461) (>= netstandard2.0)
       Microsoft.Extensions.Primitives (>= 6.0) - restriction: || (>= net461) (>= netstandard2.0)
       System.ValueTuple (>= 4.5) - restriction: >= net461
+    Microsoft.Extensions.Configuration.EnvironmentVariables (6.0.1)
+      Microsoft.Extensions.Configuration (>= 6.0) - restriction: || (>= net461) (>= netstandard2.0)
+      Microsoft.Extensions.Configuration.Abstractions (>= 6.0) - restriction: || (>= net461) (>= netstandard2.0)
     Microsoft.Extensions.Configuration.FileExtensions (6.0) - restriction: || (>= net461) (>= netstandard2.0)
       Microsoft.Extensions.Configuration (>= 6.0) - restriction: || (>= net461) (>= netstandard2.0)
       Microsoft.Extensions.Configuration.Abstractions (>= 6.0) - restriction: || (>= net461) (>= netstandard2.0)

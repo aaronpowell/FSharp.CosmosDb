@@ -4,7 +4,10 @@ open FSharp.CosmosDb
 open FSharp.Control
 open Microsoft.Extensions.Configuration
 open System.IO
+open System.Net
 open Types
+open System.Net.Http
+open Microsoft.Azure.Cosmos
 
 let getFamiliesConnection host key =
     host
@@ -40,12 +43,7 @@ let getFamilies conn =
 
 let updateFamily conn id pk =
     conn
-    |> Cosmos.update<Family>
-        id
-        pk
-        (fun family ->
-            { family with
-                  IsRegistered = not family.IsRegistered })
+    |> Cosmos.update<Family> id pk (fun family -> { family with IsRegistered = not family.IsRegistered })
     |> Cosmos.execAsync
 
 let deleteFamily conn id pk =
@@ -55,31 +53,53 @@ let deleteFamily conn id pk =
 
 [<EntryPoint>]
 let main argv =
+    ServicePointManager.ServerCertificateValidationCallback <-
+        fun sender certs chain errors ->
+            printfn "%A" sender
+            true
+
     let environmentName =
         System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
 
     let builder =
-        JsonConfigurationExtensions.AddJsonFile(
-            JsonConfigurationExtensions.AddJsonFile(
-                FileConfigurationExtensions.SetBasePath(ConfigurationBuilder(), Directory.GetCurrentDirectory()),
-                "appsettings.json",
+        JsonConfigurationExtensions
+            .AddJsonFile(
+                JsonConfigurationExtensions.AddJsonFile(
+                    FileConfigurationExtensions.SetBasePath(ConfigurationBuilder(), Directory.GetCurrentDirectory()),
+                    "appsettings.json",
+                    true,
+                    true
+                ),
+                sprintf "appsettings.%s.json" environmentName,
                 true,
                 true
-            ),
-            sprintf "appsettings.%s.json" environmentName,
-            true,
-            true
-        )
+            )
+            .AddEnvironmentVariables()
 
     let config = builder.Build()
 
     async {
-        let host = config.["CosmosConnection:Host"]
-        let key = config.["CosmosConnection:Key"]
+        let host = config.["Cosmos:EndPoint"]
+        let key = config.["Cosmos:Key"]
         use conn = getFamiliesConnection host key
 
+        let client = Cosmos.Raw.client conn
+
+        client.ClientOptions.ConnectionMode <- ConnectionMode.Gateway
+
+        client.ClientOptions.HttpClientFactory <-
+            fun () ->
+                printfn "running"
+                let handler = new HttpClientHandler()
+
+                handler.ServerCertificateCustomValidationCallback <-
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+
+                let hc = new HttpClient(handler)
+                hc
+
         // let connectionString =
-        //     config.["CosmosConnection:ConnectionString"]
+        //     config.["Cosmos:ConnectionString"]
 
         // let conn =
         //     getFamiliesConnectionFromConnString connectionString
@@ -90,13 +110,13 @@ let main argv =
             [| { Id = "Powell.1"
                  LastName = "Powell"
                  Parents =
-                     [| { FamilyName = "Powell"
-                          FirstName = "Aaron" } |]
+                   [| { FamilyName = "Powell"
+                        FirstName = "Aaron" } |]
                  Children = Array.empty
                  Address =
-                     { State = "NSW"
-                       Country = "Australia"
-                       City = "Sydney" }
+                   { State = "NSW"
+                     Country = "Australia"
+                     City = "Sydney" }
                  IsRegistered = true } |]
             |> Array.toList
 
@@ -131,14 +151,14 @@ let main argv =
             |> AsyncSeq.map (fun f -> { f with LastName = "Powellz" })
             |> AsyncSeq.map (fun f -> conn |> Cosmos.replace f |> Cosmos.execAsync)
             |> AsyncSeq.iter (fun f -> printfn "Replaced: %A" f)
-            
-        do!
-            conn
-            |> Cosmos.container "Family"
-            |> Cosmos.deleteContainer
-            |> Cosmos.execAsync
-            |> Async.Ignore
-            
+
+        // do!
+        //     conn
+        //     |> Cosmos.container "Family"
+        //     |> Cosmos.deleteContainer
+        //     |> Cosmos.execAsync
+        //     |> Async.Ignore
+
         do!
             conn
             |> Cosmos.container "Family"
