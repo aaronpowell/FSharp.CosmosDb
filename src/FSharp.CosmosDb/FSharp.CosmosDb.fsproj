@@ -10,6 +10,7 @@
     <Compile Include="PartitionKeyAttribute.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="OperationHandling.fs" />
+    <Compile Include="QueryBuilder.fs" />
     <Compile Include="Cosmos.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />

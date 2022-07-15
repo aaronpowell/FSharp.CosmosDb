@@ -2,6 +2,7 @@ namespace FSharp.CosmosDb
 
 open Microsoft.Azure.Cosmos
 open System
+open System.Linq
 
 [<RequireQualifiedAccess>]
 module Cosmos =
@@ -61,6 +62,15 @@ module Cosmos =
                       Parameters = q.Parameters @ arr }
         | _ -> failwith "Only the Query discriminated union supports parameters"
 
+    // --- LINQ --- //
+
+    let linq<'TSource, 'TResult> (query: IQueryable<'TSource> -> IQueryable<'TResult>) op : ContainerOperation<'TResult> =
+        Linq 
+            { Connection = op;
+              Query = fun container ->
+                container.GetItemLinqQueryable<'TSource>()
+                |> query }
+
     // --- INSERT --- //
 
     let insertMany<'T> (values: 'T list) op =
@@ -116,6 +126,7 @@ module Cosmos =
     let execAsync<'T> (op: ContainerOperation<'T>) =
         match op with
         | Query op -> OperationHandling.execQuery getClient op
+        | Linq op -> OperationHandling.execLinq getClient op
         | Insert op -> OperationHandling.execInsert getClient op
         | Update op -> OperationHandling.execUpdate getClient op
         | Delete op -> OperationHandling.execDelete getClient op

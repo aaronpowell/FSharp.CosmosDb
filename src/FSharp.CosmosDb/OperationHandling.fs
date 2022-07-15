@@ -3,6 +3,7 @@ module internal OperationHandling
 
 open FSharp.CosmosDb
 open Microsoft.Azure.Cosmos
+open Microsoft.Azure.Cosmos.Linq
 open FSharp.Control
 open System
 
@@ -64,6 +65,27 @@ let execQueryBatch (getClient: ConnectionOperation -> CosmosClient) (op: QueryOp
 
     match result with
     | Some result -> result |> AsyncSeq.ofAsyncFeedIterator
+    | None ->
+        failwith "Unable to construct a query as some values are missing across the database, container name and query"
+
+let execLinq (getClient: ConnectionOperation -> CosmosClient) (op: LinqOp<'T>) =
+    let connInfo = op.Connection
+    let client = getClient connInfo
+
+    let result =
+        maybe {
+            let! databaseId = connInfo.DatabaseId
+            let! containerName = connInfo.ContainerName
+
+            let db = client.GetDatabase databaseId
+
+            let container = db.GetContainer containerName
+            
+            return op.Query(container).ToFeedIterator<'T>()
+        }
+
+    match result with
+    | Some result -> ofAsyncFeedIterator result
     | None ->
         failwith "Unable to construct a query as some values are missing across the database, container name and query"
 

@@ -38,6 +38,16 @@ let getFamilies conn =
     |> Cosmos.parameters [ "@lastName", box "Powell" ]
     |> Cosmos.execAsync
 
+let getFamilyLastNames conn =
+    conn
+    |> Cosmos.linq<Family, string> (fun families ->
+        cosmosQuery {
+            for family in families do
+            where (family.LastName = "Powell")
+            select family.LastName
+        })
+    |> Cosmos.execAsync
+
 let updateFamily conn id pk =
     conn
     |> Cosmos.update<Family>
@@ -111,6 +121,12 @@ let main argv =
         do!
             families
             |> AsyncSeq.iter (fun f -> printfn "Got: %A" f)
+
+        let lastNames = getFamilyLastNames conn
+
+        do!
+            lastNames
+            |> AsyncSeq.iter (printfn "Got: %s") 
 
         let updatePowell = updateFamily conn "Powell.1" "Powell"
 

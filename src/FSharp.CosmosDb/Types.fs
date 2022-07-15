@@ -6,6 +6,7 @@ open System.Threading.Tasks
 open System.Collections.Concurrent
 open System
 open System.Collections.Generic
+open System.Linq
 
 module internal Caching =
     let private clientCache =
@@ -86,6 +87,10 @@ type QueryOp<'T> =
       Query: string option
       Parameters: (string * obj) list }
 
+type LinqOp<'T> =
+    { Connection: ConnectionOperation
+      Query: Container -> IQueryable<'T> }
+
 type InsertOp<'T> =
     { Connection: ConnectionOperation
       Values: 'T list }
@@ -116,6 +121,7 @@ type ReplaceOp<'T> =
 
 type ContainerOperation<'T> =
     | Query of QueryOp<'T>
+    | Linq of LinqOp<'T>
     | Insert of InsertOp<'T>
     | Update of UpdateOp<'T>
     | Delete of DeleteOp<'T>
