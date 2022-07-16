@@ -44,7 +44,7 @@ let getFamilyLastNames conn =
         cosmosQuery {
             for family in families do
             where (family.LastName = "Powell")
-            select family.LastName
+            select (truncate 1.4 |> string)
         })
     |> Cosmos.execAsync
 
