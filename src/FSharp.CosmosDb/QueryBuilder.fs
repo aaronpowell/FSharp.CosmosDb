@@ -209,9 +209,20 @@ type CosmosQueryBuilder() =
             else
                 failwith $"Invalid argument type for translation of '{nameof truncate}': {typ.FullName}"
 
+        // Pipeline operator removal.
+        | SpecificCall <@@ (|>) @@> (_, _, [ x; f ]) ->
+            let f = replace f
+            let x = replace x
+            Expr.Application(f, x)
+
+        | SpecificCall <@@ (<|) @@> (_, _, [ f; x ]) ->
+            let f = replace f
+            let x = replace x
+            Expr.Application(f, x)
+
         | ShapeVar v -> Expr.Var v
-        | ShapeLambda (v, expr) -> Expr.Lambda(v, replace expr)
-        | ShapeCombination (o, args) -> RebuildShapeCombination(o, List.map replace args)
+        | ShapeLambda(v, expr) -> Expr.Lambda(v, replace expr)
+        | ShapeCombination(o, args) -> RebuildShapeCombination(o, List.map replace args)
 
     member _.Run(e: Expr<QuerySource<'a, IQueryable>>) =
         let r = Expr.Cast<QuerySource<'a, IQueryable>>(replace e)
