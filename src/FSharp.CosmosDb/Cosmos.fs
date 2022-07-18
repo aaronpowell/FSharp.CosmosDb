@@ -16,23 +16,22 @@ module Cosmos =
 
     let fromConnectionString connString =
         { defaultConnectionOp () with
-              FromConnectionString = true
-              ConnectionString = Some connString }
+            FromConnectionString = true
+            ConnectionString = Some connString }
 
     let fromConnectionStringWithOptions connString op =
         { defaultConnectionOp () with
-              Options = Some op
-              FromConnectionString = true
-              ConnectionString = Some connString }
+            Options = Some op
+            FromConnectionString = true
+            ConnectionString = Some connString }
 
     let host endpoint =
-        { defaultConnectionOp () with
-              Endpoint = Some endpoint }
+        { defaultConnectionOp () with Endpoint = Some endpoint }
 
     let connectWithOptions options accessKey op =
         { op with
-              Options = Some options
-              AccessKey = accessKey }
+            Options = Some options
+            AccessKey = accessKey }
 
     let connect accessKey op = { op with AccessKey = Some accessKey }
 
@@ -49,12 +48,12 @@ module Cosmos =
 
     let query<'T> query op : QueryOp<'T> =
         { defaultQueryOp () with
-              Query = Some query
-              Connection = op }
+            Query = Some query
+            Connection = op }
 
     let parameters arr op =
         { op with QueryOp.Parameters = op.Parameters @ arr }
-        
+
     // --- DATABASE EXISTS --- //
     let databaseExists<'T> op =
         { CheckIfDatabaseExistsOp.Connection = op }
@@ -62,18 +61,22 @@ module Cosmos =
     // --- INSERT --- //
 
     let insertMany<'T> (values: 'T list) op =
-        { InsertOp.Connection = op; Values = values }
+        { InsertOp.Connection = op
+          Values = values }
 
     let insert<'T> (value: 'T) op =
-        { InsertOp.Connection = op; Values = [ value ] }
+        { InsertOp.Connection = op
+          Values = [ value ] }
 
     // --- INSERT --- //
 
     let upsertMany<'T> (values: 'T list) op =
-        { UpsertOp.Connection = op; Values = values }
+        { UpsertOp.Connection = op
+          Values = values }
 
     let upsert<'T> (value: 'T) op =
-        { UpsertOp.Connection = op; Values = [ value ] }
+        { UpsertOp.Connection = op
+          Values = [ value ] }
 
     // --- UPDATE --- //
 
@@ -89,19 +92,24 @@ module Cosmos =
         { DeleteItemOp.Connection = op
           Id = id
           PartitionKey = partitionKey }
-        
+
     // --- GET CONTAINER PROPERTIES --- //
     let getContainerProperties op =
         { GetContainerPropertiesOp.Connection = op }
-        
+
     // --- CONTAINER EXISTS --- //
     let containerExists op =
         { CheckIfContainerExistsOp.Connection = op }
-            
+
+    // --- CREATE CONTAINER --- //
+    let createContainer<'T> op : CreateContainerOp<'T> = { CreateContainerOp.Connection = op }
+
+    let createContainerIfNotExists<'T> op : CreateContainerIfNotExistsOp<'T> =
+        { CreateContainerIfNotExistsOp.Connection = op }
+
     // --- DELETE CONTAINER --- //
 
-    let deleteContainer<'T> op : DeleteContainerOp<'T> =
-        { DeleteContainerOp.Connection = op }
+    let deleteContainer<'T> op : DeleteContainerOp<'T> = { DeleteContainerOp.Connection = op }
 
     // --- DELETE CONTAINER IF EXISTS --- //
 
@@ -118,7 +126,8 @@ module Cosmos =
     // --- REPLACE --- //
 
     let replace<'T> (item: 'T) op =
-        { ReplaceOp.Connection = op; Item = item }
+        { ReplaceOp.Connection = op
+          Item = item }
 
     // --- Execute --- //
 
@@ -170,24 +179,19 @@ module Cosmos =
               MaxItems = None }
 
         let withInstanceName<'T> name changeFeedInfo : ChangeFeedOptions<'T> =
-            { changeFeedInfo with
-                  InstanceName = Some name }
+            { changeFeedInfo with InstanceName = Some name }
 
         let leaseContainer<'T> leaseContainerInfo changeFeedInfo : ChangeFeedOptions<'T> =
-            { changeFeedInfo with
-                  LeaseContainer = Some leaseContainerInfo }
+            { changeFeedInfo with LeaseContainer = Some leaseContainerInfo }
 
         let pollingInterval<'T> interval changeFeedInfo : ChangeFeedOptions<'T> =
-            { changeFeedInfo with
-                  PollingInterval = Some interval }
+            { changeFeedInfo with PollingInterval = Some interval }
 
         let startTime<'T> startTime changeFeedInfo : ChangeFeedOptions<'T> =
-            { changeFeedInfo with
-                  StartTime = Some startTime }
+            { changeFeedInfo with StartTime = Some startTime }
 
         let maxItems<'T> maxItems changeFeedInfo : ChangeFeedOptions<'T> =
-            { changeFeedInfo with
-                  MaxItems = Some maxItems }
+            { changeFeedInfo with MaxItems = Some maxItems }
 
         let build<'T> changeFeedInfo =
             let processor =
@@ -233,18 +237,48 @@ module Cosmos =
                 processor.Build()
             | None ->
                 failwith "Unable to connect the change feed. Ensure the container and lease container info is all set"
-                
+
 type Cosmos =
-    static member private getClient (connInfo: ConnectionOperation) = connInfo.GetClient()
-    static member execAsync (op: QueryOp<'T>) = OperationHandling.execQuery Cosmos.getClient op
-    static member execAsync op = OperationHandling.execCheckIfDatabaseExists Cosmos.getClient op
-    static member execAsync op = OperationHandling.execInsert Cosmos.getClient op
-    static member execAsync op = OperationHandling.execUpdate Cosmos.getClient op
-    static member execAsync op = OperationHandling.execDeleteItem Cosmos.getClient op
-    static member execAsync op = OperationHandling.execGetContainerProperties Cosmos.getClient op
-    static member execAsync op = OperationHandling.execCheckIfContainerExists Cosmos.getClient op
-    static member execAsync op = OperationHandling.execDeleteContainer Cosmos.getClient op
-    static member execAsync op = OperationHandling.execDeleteContainerIfExists Cosmos.getClient op
-    static member execAsync op = OperationHandling.execUpsert Cosmos.getClient op
-    static member execAsync op = OperationHandling.execRead Cosmos.getClient op
-    static member execAsync op = OperationHandling.execReplace Cosmos.getClient op
+    static member private getClient(connInfo: ConnectionOperation) = connInfo.GetClient()
+
+    static member execAsync(op: QueryOp<'T>) =
+        OperationHandling.execQuery Cosmos.getClient op
+
+    static member execAsync op =
+        OperationHandling.execCheckIfDatabaseExists Cosmos.getClient op
+
+    static member execAsync op =
+        OperationHandling.execInsert Cosmos.getClient op
+
+    static member execAsync op =
+        OperationHandling.execUpdate Cosmos.getClient op
+
+    static member execAsync op =
+        OperationHandling.execDeleteItem Cosmos.getClient op
+
+    static member execAsync op =
+        OperationHandling.execGetContainerProperties Cosmos.getClient op
+
+    static member execAsync op =
+        OperationHandling.execCheckIfContainerExists Cosmos.getClient op
+
+    static member execAsync op =
+        OperationHandling.execDeleteContainer Cosmos.getClient op
+
+    static member execAsync op =
+        OperationHandling.execDeleteContainerIfExists Cosmos.getClient op
+
+    static member execAsync op =
+        OperationHandling.execUpsert Cosmos.getClient op
+
+    static member execAsync op =
+        OperationHandling.execRead Cosmos.getClient op
+
+    static member execAsync op =
+        OperationHandling.execReplace Cosmos.getClient op
+
+    static member execAsync op =
+        OperationHandling.execCreateContainer Cosmos.getClient op
+
+    static member execAsync op =
+        OperationHandling.execCreateContainerIfNotExists Cosmos.getClient op

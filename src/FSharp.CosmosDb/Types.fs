@@ -9,8 +9,7 @@ open System
 open System.Collections.Generic
 
 module internal Caching =
-    let private clientCache =
-        ConcurrentDictionary<string, CosmosClient>()
+    let private clientCache = ConcurrentDictionary<string, CosmosClient>()
 
     let inline private tryGetOption key (cd: ConcurrentDictionary<_, _>) =
         if cd.ContainsKey key then
@@ -25,11 +24,10 @@ module internal Caching =
             return
                 clientCache
                 |> tryGetOption cs
-                |> Option.defaultWith
-                    (fun () ->
-                        let client = new CosmosClient(cs, clientOps)
-                        clientCache.[cs] <- client
-                        client)
+                |> Option.defaultWith (fun () ->
+                    let client = new CosmosClient(cs, clientOps)
+                    clientCache.[cs] <- client
+                    client)
         }
 
     let fromKey host' accessKey' clientOps =
@@ -42,13 +40,11 @@ module internal Caching =
             return
                 clientCache
                 |> tryGetOption connStr
-                |> Option.defaultWith
-                    (fun () ->
-                        let client =
-                            new CosmosClient(host, accessKey, clientOps)
+                |> Option.defaultWith (fun () ->
+                    let client = new CosmosClient(host, accessKey, clientOps)
 
-                        clientCache.[connStr] <- client
-                        client)
+                    clientCache.[connStr] <- client
+                    client)
         }
 
 type ConnectionOperation =
@@ -87,8 +83,7 @@ type QueryOp<'T> =
       Query: string option
       Parameters: (string * obj) list }
 
-type CheckIfDatabaseExistsOp =
-    { Connection: ConnectionOperation }
+type CheckIfDatabaseExistsOp = { Connection: ConnectionOperation }
 
 type InsertOp<'T> =
     { Connection: ConnectionOperation
@@ -108,19 +103,19 @@ type DeleteItemOp<'T> =
     { Connection: ConnectionOperation
       Id: string
       PartitionKey: string }
-    
-type GetContainerPropertiesOp = 
-    { Connection: ConnectionOperation }
-    
-type CheckIfContainerExistsOp =
-    { Connection: ConnectionOperation }
-    
-type DeleteContainerOp<'T> =
-    { Connection: ConnectionOperation }
 
-type DeleteContainerIfExistsOp =
-    { Connection: ConnectionOperation }
-    
+type GetContainerPropertiesOp = { Connection: ConnectionOperation }
+
+type CheckIfContainerExistsOp = { Connection: ConnectionOperation }
+
+type CreateContainerOp<'T> = { Connection: ConnectionOperation }
+
+type CreateContainerIfNotExistsOp<'T> = { Connection: ConnectionOperation }
+
+type DeleteContainerOp<'T> = { Connection: ConnectionOperation }
+
+type DeleteContainerIfExistsOp = { Connection: ConnectionOperation }
+
 type ReadOp<'T> =
     { Connection: ConnectionOperation
       Id: string
