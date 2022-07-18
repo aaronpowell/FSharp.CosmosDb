@@ -284,7 +284,7 @@ module CosmosCodeAnalysis =
         match ctx.ParseTree with
         | ParsedInput.ImplFile input ->
             match input with
-            | ParsedImplFileInput (_, _, _, _, _, modules, _) ->
+            | ParsedImplFileInput (_, _, _, _, _, modules, _, _) ->
                 for parsedModule in modules do
                     match parsedModule with
                     | SynModuleOrNamespace (_, _, _, declarations, _, _, _, _) ->
