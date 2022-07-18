@@ -1,5 +1,12 @@
 # Changelog for `FSharp.CosmosDb`
 
+## [1.1.0] - 2022-07-18
+
+### Added
+
+- Can now delete a container, thanks to [#64](https://github.com/aaronpowell/FSharp.CosmosDb/pull/64)
+- Can now create a container (to be inline with delete features)
+
 ## [1.0.0] - 2022-04-16
 
 **This release has breaking changes from pre-v1**
