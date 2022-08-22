@@ -58,6 +58,12 @@ module Cosmos =
     let databaseExists<'T> op =
         { CheckIfDatabaseExistsOp.Connection = op }
 
+    // --- CREATE DATABASE --- //
+    let createDatabase op = { CreateDatabaseOp.Connection = op }
+
+    let createDatabaseIfNotExists op =
+        { CreateDatabaseIfNotExistsOp.Connection = op }
+
     // --- INSERT --- //
 
     let insertMany<'T> (values: 'T list) op =
@@ -282,3 +288,9 @@ type Cosmos =
 
     static member execAsync op =
         OperationHandling.execCreateContainerIfNotExists Cosmos.getClient op
+
+    static member execAsync op =
+        OperationHandling.execCreateDatabase Cosmos.getClient op
+
+    static member execAsync op =
+        OperationHandling.execCreateDatabaseIfNotExists Cosmos.getClient op

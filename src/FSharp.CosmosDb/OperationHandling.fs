@@ -425,3 +425,51 @@ let execCreateContainerIfNotExists
     | None ->
         failwith
             "Unable to create the container. Ensure the name is valid and there is a partition key defined on the type"
+
+let execCreateDatabase (getClient: ConnectionOperation -> CosmosClient) (op: CreateDatabaseOp) =
+    let connInfo = op.Connection
+    let client = getClient connInfo
+
+    let result =
+        maybe {
+            let! databaseId = connInfo.DatabaseId
+
+            return
+                client.CreateDatabaseAsync databaseId
+                |> Async.AwaitTask
+        }
+
+    match result with
+    | Some result ->
+        [ async {
+              let! res = result
+              return res.Resource
+          } ]
+        |> AsyncSeq.ofSeqAsync
+    | None ->
+        failwith
+            "Unable to create the database. Ensure the database does not already exist and that your connection info is valid"
+
+let execCreateDatabaseIfNotExists (getClient: ConnectionOperation -> CosmosClient) (op: CreateDatabaseIfNotExistsOp) =
+    let connInfo = op.Connection
+    let client = getClient connInfo
+
+    let result =
+        maybe {
+            let! databaseId = connInfo.DatabaseId
+
+            return
+                client.CreateDatabaseIfNotExistsAsync databaseId
+                |> Async.AwaitTask
+        }
+
+    match result with
+    | Some result ->
+        [ async {
+              let! res = result
+              return res.Resource
+          } ]
+        |> AsyncSeq.ofSeqAsync
+    | None ->
+        failwith
+            "Unable to create the database. Ensure the database does not already exist and that your connection info is valid"

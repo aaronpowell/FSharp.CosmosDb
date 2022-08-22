@@ -53,11 +53,6 @@ let deleteFamily conn id pk =
 
 [<EntryPoint>]
 let main argv =
-    ServicePointManager.ServerCertificateValidationCallback <-
-        fun sender certs chain errors ->
-            printfn "%A" sender
-            true
-
     let environmentName =
         System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
 
@@ -90,6 +85,19 @@ let main argv =
         //     getFamiliesConnectionFromConnString connectionString
 
         printfn "Getting ready to do some Cosmos operations"
+
+        do!
+            conn
+            |> Cosmos.createDatabaseIfNotExists
+            |> Cosmos.execAsync
+            |> AsyncSeq.iter (fun _ -> ())
+
+        do!
+            conn
+            |> Cosmos.createContainerIfNotExists<Family>
+            |> Cosmos.execAsync
+            |> AsyncSeq.iter (fun _ -> ())
+
 
         let families =
             [| { Id = "Powell.1"
@@ -146,7 +154,6 @@ let main argv =
 
         do!
             conn
-            |> Cosmos.container "Family"
             |> Cosmos.deleteContainerIfExists
             |> Cosmos.execAsync
             |> Async.Ignore

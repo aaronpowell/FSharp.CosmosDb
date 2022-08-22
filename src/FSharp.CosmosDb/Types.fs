@@ -109,6 +109,10 @@ type GetContainerPropertiesOp = { Connection: ConnectionOperation }
 
 type CheckIfContainerExistsOp = { Connection: ConnectionOperation }
 
+type CreateDatabaseOp = { Connection: ConnectionOperation }
+
+type CreateDatabaseIfNotExistsOp = { Connection: ConnectionOperation }
+
 type CreateContainerOp<'T> = { Connection: ConnectionOperation }
 
 type CreateContainerIfNotExistsOp<'T> = { Connection: ConnectionOperation }
