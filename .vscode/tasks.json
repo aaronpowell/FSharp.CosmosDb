@@ -50,6 +50,16 @@
       "presentation": {
         "reveal": "always"
       }
+    },
+    {
+      "label": "run sample",
+      "type": "shell",
+      "command": "dotnet",
+      "args": ["fake", "run", "./build.fsx", "--target", "RunSample"],
+      "problemMatcher": ["$msCompile"],
+      "presentation": {
+        "reveal": "always"
+      }
     }
   ]
 }

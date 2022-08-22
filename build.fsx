@@ -167,6 +167,9 @@ Target.create "RunAnalyzer" (fun ctx ->
 
     DotNet.exec id "fsharp-analyzers" args |> ignore)
 
+Target.create "RunSample" (fun ctx ->
+    DotNet.exec id "run" "--project samples/FSharp.CosmosDb.Samples/FSharp.CosmosDb.Samples.fsproj" |> ignore)
+
 Target.create "Default" ignore
 Target.create "Release" ignore
 Target.create "CI" ignore
@@ -188,5 +191,6 @@ Target.create "CI" ignore
 ==> "CI"
 
 "Default" ==> "Publish" ==> "RunAnalyzer"
+"Default" ==> "Publish" ==> "RunSample"
 
 Target.runOrDefault "Default"
