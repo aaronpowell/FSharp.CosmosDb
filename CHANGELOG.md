@@ -1,5 +1,17 @@
 # Changelog for `FSharp.CosmosDb`
 
+## [1.2.0] - 2022-08-22
+
+### Added
+
+- Can now create a database, to be inline with the create container feature
+
+### Changed
+
+- New devcontainer definition that uses docker-compose to run the cosmos emulator locally
+- When the devcontainer starts, the connection info for the emulator is set, so you can run the samples straight away
+
+
 ## [1.1.0] - 2022-07-18
 
 ### Added
