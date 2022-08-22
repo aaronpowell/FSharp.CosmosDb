@@ -2,35 +2,35 @@ version: '3'
 
 services:
   app:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
       args:
-            USER_UID: 1000
-            USER_GID: 1000
-            VARIANT: "6.0"
+        USER_UID: 1000
+        USER_GID: 1000
+        VARIANT: "6.0"
 
     init: true
     volumes:
-        - /var/run/docker.sock:/var/run/docker-host.sock
-        - ..:/workspace:cached
+      - /var/run/docker.sock:/var/run/docker-host.sock
+      - ..:/workspace:cached
 
     entrypoint: /usr/local/share/docker-init.sh
     command: sleep infinity
     environment:
-      # These names aren't special - they're just used in the Node app to configure the CosmosClient
-      COSMOS__ENDPOINT: https://cosmos:8081
       # This is the publicly documented emulator key
       COSMOS__KEY: 'C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=='
 
     network_mode: service:cosmos
+
   cosmos:
+    container_name: cosmos
     image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
     mem_limit: 3g
     cpu_count: 2
     environment:
-        AZURE_COSMOS_EMULATOR_PARTITION_COUNT: 10
-        AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE: "true"
+      AZURE_COSMOS_EMULATOR_PARTITION_COUNT: 10
+      AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE: "true"
     volumes:
-        # Forwards the local Docker socket to the container.
-        - /var/run/docker.sock:/var/run/docker-host.sock
+      # Forwards the local Docker socket to the container.
+      - /var/run/docker.sock:/var/run/docker-host.sock
