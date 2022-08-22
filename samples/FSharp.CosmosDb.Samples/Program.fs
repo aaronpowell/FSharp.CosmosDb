@@ -83,21 +83,6 @@ let main argv =
         let key = config.["Cosmos:Key"]
         use conn = getFamiliesConnection host key
 
-        let client = Cosmos.Raw.client conn
-
-        client.ClientOptions.ConnectionMode <- ConnectionMode.Gateway
-
-        client.ClientOptions.HttpClientFactory <-
-            fun () ->
-                printfn "running"
-                let handler = new HttpClientHandler()
-
-                handler.ServerCertificateCustomValidationCallback <-
-                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-
-                let hc = new HttpClient(handler)
-                hc
-
         // let connectionString =
         //     config.["Cosmos:ConnectionString"]
 
