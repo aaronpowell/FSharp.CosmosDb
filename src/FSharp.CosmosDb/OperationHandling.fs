@@ -360,3 +360,68 @@ let execReplace (getClient: ConnectionOperation -> CosmosClient) (op: ReplaceOp<
           } ]
         |> AsyncSeq.ofSeqAsync
     | None -> failwith "Unable to read from the container to replace item"
+
+let execCreateContainer (getClient: ConnectionOperation -> CosmosClient) (op: CreateContainerOp<'T>) =
+    let connInfo = op.Connection
+    let client = getClient connInfo
+
+    let result =
+        maybe {
+            let! databaseId = connInfo.DatabaseId
+            let! containerName = connInfo.ContainerName
+
+            let db = client.GetDatabase databaseId
+
+            let! partitionKey = PartitionKeyAttributeTools.findPartitionKey<'T> ()
+
+            let properties = ContainerProperties(containerName, sprintf "/%s" partitionKey.Name)
+
+            return
+                db.CreateContainerAsync properties
+                |> Async.AwaitTask
+        }
+
+    match result with
+    | Some result ->
+        [ async {
+              let! res = result
+              return res.Resource
+          } ]
+        |> AsyncSeq.ofSeqAsync
+    | None ->
+        failwith
+            "Unable to create the container. Ensure the name is valid and there is a partition key defined on the type"
+
+let execCreateContainerIfNotExists
+    (getClient: ConnectionOperation -> CosmosClient)
+    (op: CreateContainerIfNotExistsOp<'T>)
+    =
+    let connInfo = op.Connection
+    let client = getClient connInfo
+
+    let result =
+        maybe {
+            let! databaseId = connInfo.DatabaseId
+            let! containerName = connInfo.ContainerName
+
+            let db = client.GetDatabase databaseId
+
+            let! partitionKey = PartitionKeyAttributeTools.findPartitionKey<'T> ()
+
+            let properties = ContainerProperties(containerName, sprintf "/%s" partitionKey.Name)
+
+            return
+                db.CreateContainerIfNotExistsAsync properties
+                |> Async.AwaitTask
+        }
+
+    match result with
+    | Some result ->
+        [ async {
+              let! res = result
+              return res.Resource
+          } ]
+        |> AsyncSeq.ofSeqAsync
+    | None ->
+        failwith
+            "Unable to create the container. Ensure the name is valid and there is a partition key defined on the type"
