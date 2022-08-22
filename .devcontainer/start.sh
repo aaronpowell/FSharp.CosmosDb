@@ -12,4 +12,7 @@ done
 
 sudo update-ca-certificates
 
-echo '{ "Cosmos": { "EndPoint" : "'$COSMOS__ENDPOINT'" } }' >> ./samples/FSharp.CosmosDb.Samples/appsettings.Development.json
+if [ ! -f ./samples/FSharp.CosmosDb.Samples/appsettings.Development.json ]
+then
+  echo '{ "Cosmos": { "EndPoint" : "'$COSMOS__ENDPOINT'" } }' >> ./samples/FSharp.CosmosDb.Samples/appsettings.Development.json
+fi
