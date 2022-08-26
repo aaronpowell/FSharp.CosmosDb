@@ -23,7 +23,7 @@ if ! dpkg -s apt-transport-https curl ca-certificates lsb-release > /dev/null 2>
     if [ ! -d "/var/lib/apt/lists" ] || [ "$(ls /var/lib/apt/lists/ | wc -l)" = "0" ]; then
         apt-get update
     fi
-    apt-get -y install --no-install-recommends apt-transport-https curl ca-certificates lsb-release gnupg2 
+    apt-get -y install --no-install-recommends apt-transport-https curl ca-certificates lsb-release gnupg2
 fi
 
 # Install the Azure CLI
