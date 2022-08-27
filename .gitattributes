@@ -1,6 +1,10 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 
+# Make sure Bash files are checked out with LF line endings
+# See https://www.git-scm.com/docs/gitattributes#_eol
+*.sh eol=lf
+
 # Custom for Visual Studio
 *.cs     diff=csharp
 *.sln    merge=union

@@ -1,3 +1,6 @@
 [*.fs]
 indent_size=4
 max_line_length=120
+
+[*.sh]
+end_of_line = lf
