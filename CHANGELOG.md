@@ -1,5 +1,11 @@
 # Changelog for `FSharp.CosmosDb`
 
+## [1.2.1] - Unreleased
+
+### Fixes
+
+- Fixing #69 by finding a property using conventions first, before raising an error
+
 ## [1.2.0] - 2022-08-22
 
 ### Added
