@@ -24,7 +24,7 @@ services:
     network_mode: service:cosmos
 
   cosmos:
-    container_name: cosmos
+    container_name: fsharp_cosmos
     image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
     mem_limit: 3g
     cpu_count: 2
