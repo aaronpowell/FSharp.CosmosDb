@@ -1,6 +1,6 @@
 # Changelog for `FSharp.CosmosDb`
 
-## [1.2.1] - Unreleased
+## [1.2.1] - 2022-11-22
 
 ### Fixes
 
