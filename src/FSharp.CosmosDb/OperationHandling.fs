@@ -11,7 +11,11 @@ let getIdFieldName<'T> (item: 'T) =
 
     match idAttr with
     | Some attr -> attr.GetValue(item).ToString()
-    | None -> "id"
+    | None ->
+        let property = item.GetType().GetProperties() |> Array.tryFind(fun p -> p.Name.Equals("id", StringComparison.InvariantCultureIgnoreCase))
+        match property with
+        | Some property -> property.GetValue(item).ToString()
+        | None -> failwith "Unable to determine the id field of the type. Either use the IdAttribute or have a field named Id"
 
 let getPartitionKeyValue<'T> (single: 'T) =
     let partitionKey = PartitionKeyAttributeTools.findPartitionKey<'T> ()

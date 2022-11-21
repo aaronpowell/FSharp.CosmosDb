@@ -17,10 +17,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Dotnet ${{ env.DOTNET_VERSION }}
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -31,7 +31,7 @@ jobs:
         run: dotnet fake run ./build.fsx --target CI
 
       - name: Publish release packages
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: packages
           path: ${{ env.OUTPUT_PATH }}
@@ -41,13 +41,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: packages
           path: ${{ env.OUTPUT_PATH }}
 
       - name: Setup .NET Core ${{ env.DOTNET_VERSION }}
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
