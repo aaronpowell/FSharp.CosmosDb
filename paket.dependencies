@@ -5,12 +5,15 @@ storage: none
 nuget FSharp.Analyzers.SDK
 nuget FSharp.Compiler.Service
 nuget FSharp.Control.AsyncSeq
+nuget FsUnit.xUnit
 nuget Microsoft.Azure.Cosmos
 nuget Microsoft.Extensions.Configuration.EnvironmentVariables
 nuget System.Json
 nuget Microsoft.Extensions.Configuration
 nuget Microsoft.Extensions.Configuration.Json
 nuget Expecto
+nuget xunit
+nuget xunit.runner.visualstudio
 nuget YoloDev.Expecto.TestSdk
 nuget Microsoft.NET.Test.Sdk 16.8.3
 nuget Microsoft.SourceLink.GitHub copy_local: true
