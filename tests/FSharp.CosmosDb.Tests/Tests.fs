@@ -40,6 +40,8 @@ let tests =
               let host = config.["Cosmos:EndPoint"]
               let key = config.["Cosmos:Key"]
 
+              printfn "host: %s" host
+
               let databaseId = Guid.NewGuid().ToString()
 
               use conn =
