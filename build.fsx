@@ -149,7 +149,7 @@ Target.create "Changelog" (fun _ ->
     [| sprintf "%O" changelog |]
     |> File.append (nupkgPath </> "changelog.md"))
 
-Target.create "Test" (fun _ ->
+Target.create "Analyzer Tests" (fun _ ->
     DotNet.exec
         (fun p -> { p with Timeout = Some(System.TimeSpan.FromMinutes 10.) })
         "run"
@@ -157,6 +157,15 @@ Target.create "Test" (fun _ ->
     |> fun r ->
         if not r.OK then
             failwithf "Errors while running LSP tests:\n%s" (r.Errors |> String.concat "\n\t"))
+
+Target.create "Integration Tests" (fun _ ->
+    DotNet.exec
+        (fun p -> { p with Timeout = Some(System.TimeSpan.FromMinutes 10.) })
+        "run"
+        """--project "./tests/FSharp.CosmosDb.Tests/FSharp.CosmosDb.Tests.fsproj" -- --fail-on-focused-tests --debug --summary"""
+    |> fun r ->
+        if not r.OK then
+            failwithf "Errors while running Integration tests:\n%s" (r.Errors |> String.concat "\n\t"))
 
 Target.create "RunAnalyzer" (fun ctx ->
     let args =
@@ -168,11 +177,18 @@ Target.create "RunAnalyzer" (fun ctx ->
     DotNet.exec id "fsharp-analyzers" args |> ignore)
 
 Target.create "RunSample" (fun ctx ->
-    DotNet.exec id "run" "--project samples/FSharp.CosmosDb.Samples/FSharp.CosmosDb.Samples.fsproj" |> ignore)
+    DotNet.exec id "run" "--project samples/FSharp.CosmosDb.Samples/FSharp.CosmosDb.Samples.fsproj"
+    |> ignore)
 
 Target.create "Default" ignore
 Target.create "Release" ignore
 Target.create "CI" ignore
+Target.create "Test" ignore
+
+"Integration Tests"
+==> "Analyzer Tests"
+==> "Test"
+
 
 "Clean" ==> "Restore" ==> "Build" ==> "Default"
 

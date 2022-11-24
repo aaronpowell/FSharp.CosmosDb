@@ -20,6 +20,7 @@ services:
     environment:
       # This is the publicly documented emulator key
       COSMOS__KEY: 'C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=='
+      ASPNETCORE_ENVIRONMENT: Development
 
     network_mode: service:cosmos
 
