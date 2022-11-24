@@ -18,7 +18,7 @@ jobs:
 
     services:
       # Label used to access the service container
-      postgres:
+      cosmosdb:
         # Docker Hub image
         image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
         env:
