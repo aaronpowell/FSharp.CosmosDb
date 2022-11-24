@@ -61,7 +61,7 @@ let tests =
               let key = config.["Cosmos:Key"]
 
               let databaseId = Guid.NewGuid().ToString()
-              let containerName = Guid.NewGuid().ToString()`
+              let containerName = Guid.NewGuid().ToString()
 
               use conn =
                   host
