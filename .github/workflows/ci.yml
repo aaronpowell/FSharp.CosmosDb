@@ -16,6 +16,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    container: mcr.microsoft.com/dotnet/nightly/sdk:6.0
+
     services:
       # Label used to access the service container
       cosmosdb:
@@ -27,7 +29,7 @@ jobs:
         ports:
           - 8081:8081
     env:
-      COSMOS__ENDPOINT: "https://localhost:8081"
+      COSMOS__ENDPOINT: "https://cosmosdb:8081"
       COSMOS__KEY: "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
 
     steps:
