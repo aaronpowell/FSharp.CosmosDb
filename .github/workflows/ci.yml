@@ -45,7 +45,7 @@ jobs:
         run: dotnet tool restore
 
       - run: |
-          docker ps
+          docker ps -a
           docker logs cosmosdb
 
       - name: Generate packages
