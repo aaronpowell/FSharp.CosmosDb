@@ -31,6 +31,69 @@ module ``Create base resources`` =
                     |> AsyncSeq.iter (fun properties -> properties.Id |> should equal databaseId)
             }
 
+        [<Fact>]
+        let ``Can create database`` () =
+            async {
+                use conn =
+                    host
+                    |> Cosmos.host
+                    |> Cosmos.connect key
+                    |> Cosmos.database databaseId
+
+                do!
+                    conn
+                    |> Cosmos.createDatabase
+                    |> Cosmos.execAsync
+                    |> AsyncSeq.iter (fun properties -> properties.Id |> should equal databaseId)
+            }
+
+        [<Fact>]
+        let ``Create database fails if db already exists`` () =
+            async {
+                use conn =
+                    host
+                    |> Cosmos.host
+                    |> Cosmos.connect key
+                    |> Cosmos.database databaseId
+
+                do!
+                    conn
+                    |> Cosmos.createDatabase
+                    |> Cosmos.execAsync
+                    |> AsyncSeq.iter (fun properties -> properties.Id |> should equal databaseId)
+
+                (fun () ->
+                    conn
+                    |> Cosmos.createDatabase
+                    |> Cosmos.execAsync
+                    |> AsyncSeq.iter (fun _ -> failwith "Shouldn't get here")
+                    |> Async.RunSynchronously
+                    |> ignore)
+                |> should throw typeof<Exception>
+            }
+
+        [<Fact>]
+        let ``Create database wont fail if exists using createDatabaseIfNotExists`` () =
+            async {
+                use conn =
+                    host
+                    |> Cosmos.host
+                    |> Cosmos.connect key
+                    |> Cosmos.database databaseId
+
+                do!
+                    conn
+                    |> Cosmos.createDatabase
+                    |> Cosmos.execAsync
+                    |> AsyncSeq.iter (fun properties -> properties.Id |> should equal databaseId)
+
+                do!
+                    conn
+                    |> Cosmos.createDatabaseIfNotExists
+                    |> Cosmos.execAsync
+                    |> AsyncSeq.iter (fun properties -> properties.Id |> should equal databaseId)
+            }
+
         interface IDisposable with
             override _.Dispose() =
                 use client = new CosmosClient(host, key)
