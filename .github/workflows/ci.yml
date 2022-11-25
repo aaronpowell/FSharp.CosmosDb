@@ -45,8 +45,7 @@ jobs:
         run: dotnet tool restore
 
       - run: |
-          docker ps -a
-          docker logs cosmosdb
+          docker ps -aq | xargs docker logs
 
       - name: Generate packages
         run: dotnet fake run ./build.fsx --target CI
