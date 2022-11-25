@@ -103,12 +103,6 @@ module ``Create base resources`` =
                 |> Async.RunSynchronously
                 |> ignore
 
-    type TestType =
-        { [<Id>]
-          Id: string
-          [<PartitionKey>]
-          PK: string }
-
     type ``Container create``() =
         let host = config.["Cosmos:EndPoint"]
         let key = config.["Cosmos:Key"]
@@ -139,6 +133,134 @@ module ``Create base resources`` =
                     |> Cosmos.createContainerIfNotExists
                     |> Cosmos.execAsync<TestType>
                     |> AsyncSeq.iter (fun properties -> properties.Id |> should equal containerName)
+            }
+
+        [<Fact>]
+        let ``Create container`` () =
+            async {
+                use conn =
+                    host
+                    |> Cosmos.host
+                    |> Cosmos.connect key
+                    |> Cosmos.database databaseId
+                    |> Cosmos.container containerName
+
+                do!
+                    conn
+                    |> Cosmos.createDatabaseIfNotExists
+                    |> Cosmos.execAsync
+                    |> AsyncSeq.iter (fun properties ->
+                        properties.Id
+                        |> should equal conn.DatabaseId.Value)
+
+                do!
+                    conn
+                    |> Cosmos.createContainer
+                    |> Cosmos.execAsync<TestType>
+                    |> AsyncSeq.iter (fun properties -> properties.Id |> should equal containerName)
+            }
+
+        [<Fact>]
+        let ``Create container fails if container exists`` () =
+            async {
+                use conn =
+                    host
+                    |> Cosmos.host
+                    |> Cosmos.connect key
+                    |> Cosmos.database databaseId
+                    |> Cosmos.container containerName
+
+                do!
+                    conn
+                    |> Cosmos.createDatabaseIfNotExists
+                    |> Cosmos.execAsync
+                    |> AsyncSeq.iter (fun properties ->
+                        properties.Id
+                        |> should equal conn.DatabaseId.Value)
+
+                do!
+                    conn
+                    |> Cosmos.createContainer
+                    |> Cosmos.execAsync<TestType>
+                    |> AsyncSeq.iter (fun properties -> properties.Id |> should equal containerName)
+
+                (fun () ->
+                    conn
+                    |> Cosmos.createContainer
+                    |> Cosmos.execAsync<TestType>
+                    |> AsyncSeq.iter (fun _ -> failwith "should not get here")
+                    |> Async.RunSynchronously)
+                |> should throw typeof<Exception>
+            }
+
+        [<Fact>]
+        let ``Create container won't fail if container exists using createContainerIfNotExists`` () =
+            async {
+                use conn =
+                    host
+                    |> Cosmos.host
+                    |> Cosmos.connect key
+                    |> Cosmos.database databaseId
+                    |> Cosmos.container containerName
+
+                do!
+                    conn
+                    |> Cosmos.createDatabaseIfNotExists
+                    |> Cosmos.execAsync
+                    |> AsyncSeq.iter (fun properties ->
+                        properties.Id
+                        |> should equal conn.DatabaseId.Value)
+
+                do!
+                    conn
+                    |> Cosmos.createContainer
+                    |> Cosmos.execAsync<TestType>
+                    |> AsyncSeq.iter (fun properties -> properties.Id |> should equal containerName)
+
+                do!
+                    conn
+                    |> Cosmos.createContainerIfNotExists
+                    |> Cosmos.execAsync<TestType>
+                    |> AsyncSeq.iter (fun properties -> properties.Id |> should equal containerName)
+            }
+
+        [<Fact>]
+        let ``Create container sets partition key from attribute`` () =
+            async {
+                use conn =
+                    host
+                    |> Cosmos.host
+                    |> Cosmos.connect key
+                    |> Cosmos.database databaseId
+                    |> Cosmos.container containerName
+
+                do!
+                    conn
+                    |> Cosmos.createDatabaseIfNotExists
+                    |> Cosmos.execAsync
+                    |> AsyncSeq.iter (fun properties ->
+                        properties.Id
+                        |> should equal conn.DatabaseId.Value)
+
+                do!
+                    conn
+                    |> Cosmos.createContainer
+                    |> Cosmos.execAsync<TestType>
+                    |> AsyncSeq.iter (fun properties -> properties.Id |> should equal containerName)
+
+
+                let container = Cosmos.Raw.container conn
+
+                match container with
+                | Some container ->
+                    task {
+                        let! res = container.ReadContainerAsync()
+                        return res.Resource.PartitionKeyPath
+                    }
+                    |> Async.AwaitTask
+                    |> Async.RunSynchronously
+                    |> should equal "/PK"
+                | None -> failwith "Should have got a container"
             }
 
         interface IDisposable with
