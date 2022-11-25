@@ -16,7 +16,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    container: mcr.microsoft.com/dotnet/nightly/sdk:6.0
+    # container: mcr.microsoft.com/dotnet/nightly/sdk:6.0
 
     services:
       # Label used to access the service container
@@ -43,6 +43,10 @@ jobs:
 
       - name: Restore dotnet tools
         run: dotnet tool restore
+
+      - run: |
+          docker ps
+          docker logs cosmosdb
 
       - name: Generate packages
         run: dotnet fake run ./build.fsx --target CI
