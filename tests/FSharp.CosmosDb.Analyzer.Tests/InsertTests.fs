@@ -1,62 +1,61 @@
 module InsertTests
 
-open Expecto
 open FSharp.CosmosDb.Analyzer
+open FsUnit.Xunit
+open Xunit
 
-[<Tests>]
-let tests =
-    testList "Insert API can be analyzed"
-        [ test "Finds all the operations in a file" {
-              match context (find "../samples/insertSample.fs") with
-              | None -> failwith "Could not load test script"
-              | Some context ->
-                  let ops = CosmosCodeAnalysis.findOperations context
-                  Expect.equal 1 (List.length ops) "Found one operation block"
-          }
+type ``Insert API can be analyzed``() =
+    [<Fact>]
+    let ``Finds all the operations in a file`` =
+        match context (find "../samples/insertSample.fs") with
+        | None -> failwith "Could not load test script"
+        | Some context ->
+            let ops = CosmosCodeAnalysis.findOperations context
+            1 |> should equal (List.length ops)
 
-          test "Found operation should have correct number of analysable bits" {
-              match context (find "../samples/insertSample.fs") with
-              | None -> failwith "Could not load test script"
-              | Some context ->
-                  let ops = CosmosCodeAnalysis.findOperations context
-                  let head = List.exactlyOne ops
-                  Expect.equal 2 (List.length head.blocks) "Found two things to analyse"
-          }
+    [<Fact>]
+    let ``Found operation should have correct number of analysable bits`` =
+        match context (find "../samples/insertSample.fs") with
+        | None -> failwith "Could not load test script"
+        | Some context ->
+            let ops = CosmosCodeAnalysis.findOperations context
+            let head = List.exactlyOne ops
+            2 |> should equal (List.length head.blocks)
 
-          test "DatabaseId should match expected" {
-              match context (find "../samples/insertSample.fs") with
-              | None -> failwith "Could not load test script"
-              | Some context ->
-                  let ops = CosmosCodeAnalysis.findOperations context
-                  let head = List.exactlyOne ops
+    [<Fact>]
+    let ``DatabaseId should match expected`` =
+        match context (find "../samples/insertSample.fs") with
+        | None -> failwith "Could not load test script"
+        | Some context ->
+            let ops = CosmosCodeAnalysis.findOperations context
+            let head = List.exactlyOne ops
 
-                  let dbId =
-                      head.blocks
-                      |> List.tryFind (function
-                          | CosmosAnalyzerBlock.DatabaseId(_) -> true
-                          | _ -> false)
-                      |> Option.map (function
-                          | CosmosAnalyzerBlock.DatabaseId(dbId, _) -> dbId
-                          | _ -> failwith "Should've found the DatabaseId operation")
+            let dbId =
+                head.blocks
+                |> List.tryFind (function
+                    | CosmosAnalyzerBlock.DatabaseId (_) -> true
+                    | _ -> false)
+                |> Option.map (function
+                    | CosmosAnalyzerBlock.DatabaseId (dbId, _) -> dbId
+                    | _ -> failwith "Should've found the DatabaseId operation")
 
-                  Expect.equal "UserDb" dbId.Value "DatabaseId matches the one in code"
-          }
+            "UserDb" |> should equal dbId.Value
 
-          test "ContainerName should match expected" {
-              match context (find "../samples/insertSample.fs") with
-              | None -> failwith "Could not load test script"
-              | Some context ->
-                  let ops = CosmosCodeAnalysis.findOperations context
-                  let head = List.exactlyOne ops
+    [<Fact>]
+    let ``ContainerName should match expected`` =
+        match context (find "../samples/insertSample.fs") with
+        | None -> failwith "Could not load test script"
+        | Some context ->
+            let ops = CosmosCodeAnalysis.findOperations context
+            let head = List.exactlyOne ops
 
-                  let container =
-                      head.blocks
-                      |> List.tryFind (function
-                          | CosmosAnalyzerBlock.ContainerName(_) -> true
-                          | _ -> false)
-                      |> Option.map (function
-                          | CosmosAnalyzerBlock.ContainerName(containerName, _) -> containerName
-                          | _ -> failwith "Should've found the ContainerName operation")
+            let container =
+                head.blocks
+                |> List.tryFind (function
+                    | CosmosAnalyzerBlock.ContainerName (_) -> true
+                    | _ -> false)
+                |> Option.map (function
+                    | CosmosAnalyzerBlock.ContainerName (containerName, _) -> containerName
+                    | _ -> failwith "Should've found the ContainerName operation")
 
-                  Expect.equal "UserContainer" container.Value "ContainerName matches the one in code"
-          } ]
+            "UserContainer" |> should equal container.Value

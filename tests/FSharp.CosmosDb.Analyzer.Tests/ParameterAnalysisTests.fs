@@ -1,222 +1,210 @@
 module ParameterAnalysisTests
 
-open Expecto
 open FSharp.CosmosDb.Analyzer
 open FSharp.Compiler.Text
 
-[<Tests>]
-let tests =
-    testList
-        "Parameters"
-        [ test "All parameters matching returns no messages" {
-            let query = "SELECT * FROM u WHERE u.Name = @name"
+open FsUnit.Xunit
+open FsUnit.CustomMatchers
+open Xunit
 
-            let queryOperation =
-                { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
-                  range = range.Zero }
+type Paramerers() =
+    [<Fact>]
+    let ``All parameters matching returns no messages`` =
+        let query = "SELECT * FROM u WHERE u.Name = @name"
 
-            let parameters =
-                [ { name = "@name"
-                    range = range.Zero
-                    paramFunc = ""
-                    paramFuncRange = range.Zero
-                    applicationRange = None } ]
+        let queryOperation =
+            { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
+              range = range.Zero }
 
-            let msgs =
-                CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
+        let parameters =
+            [ { name = "@name"
+                range = range.Zero
+                paramFunc = ""
+                paramFuncRange = range.Zero
+                applicationRange = None } ]
 
-            Expect.equal 0 msgs.Length "All parameters matched"
-          }
+        let msgs = CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
 
-          test "If parameter in query not in provided a warning is raised" {
-              let query = "SELECT * FROM u WHERE u.Name = @name"
+        0 |> should equal msgs.Length
 
-              let queryOperation =
-                  { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
-                    range = range.Zero }
+    [<Fact>]
+    let ``If parameter in query not in provided a warning is raised`` =
+        let query = "SELECT * FROM u WHERE u.Name = @name"
 
-              let parameters = []
+        let queryOperation =
+            { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
+              range = range.Zero }
 
-              let msgs =
-                  CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
+        let parameters = []
 
-              Expect.equal 1 msgs.Length "One parameter wasn't provided"
-          }
+        let msgs = CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
 
-          test "If parameter provided but not used a warning is raised" {
-              let query = "SELECT * FROM u"
+        1 |> should equal msgs.Length
 
-              let queryOperation =
-                  { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
-                    range = range.Zero }
+    [<Fact>]
+    let ``If parameter provided but not used a warning is raised`` =
+        let query = "SELECT * FROM u"
 
-              let parameters =
-                  [ { name = "@name"
-                      range = range.Zero
-                      paramFunc = ""
-                      paramFuncRange = range.Zero
-                      applicationRange = None } ]
+        let queryOperation =
+            { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
+              range = range.Zero }
 
-              let msgs =
-                  CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
+        let parameters =
+            [ { name = "@name"
+                range = range.Zero
+                paramFunc = ""
+                paramFuncRange = range.Zero
+                applicationRange = None } ]
 
-              Expect.equal 1 msgs.Length "Too many parameters provided"
-          }
+        let msgs = CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
 
-          test "Parameter name missmatch deteched" {
-              let query = "SELECT * FROM u WHERE u.Name = @NAME"
+        1 |> should equal msgs.Length
 
-              let queryOperation =
-                  { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
-                    range = range.Zero }
+    [<Fact>]
+    let ``Parameter name missmatch deteched`` =
+        let query = "SELECT * FROM u WHERE u.Name = @NAME"
 
-              let parameters =
-                  [ { name = "@name"
-                      range = range.Zero
-                      paramFunc = ""
-                      paramFuncRange = range.Zero
-                      applicationRange = None } ]
+        let queryOperation =
+            { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
+              range = range.Zero }
 
-              let msgs =
-                  CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
+        let parameters =
+            [ { name = "@name"
+                range = range.Zero
+                paramFunc = ""
+                paramFuncRange = range.Zero
+                applicationRange = None } ]
 
-              Expect.equal 2 msgs.Length "Defined parameter not provided and provided parameter not used"
-          }
+        let msgs = CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
 
-          test "Params in query offered fix of defined" {
-              let query = "SELECT * FROM u WHERE u.Name = @NAME"
+        2 |> should equal msgs.Length
 
-              let queryOperation =
-                  { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
-                    range = range.Zero }
+    [<Fact>]
+    let ``Params in query offered fix of defined`` =
+        let query = "SELECT * FROM u WHERE u.Name = @NAME"
 
-              let parameters =
-                  [ { name = "@name"
-                      range = range.Zero
-                      paramFunc = ""
-                      paramFuncRange = range.Zero
-                      applicationRange = None } ]
+        let queryOperation =
+            { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
+              range = range.Zero }
 
-              let msgs =
-                  CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
+        let parameters =
+            [ { name = "@name"
+                range = range.Zero
+                paramFunc = ""
+                paramFuncRange = range.Zero
+                applicationRange = None } ]
 
-              let queryParamMsg =
-                  msgs
-                  |> List.find (fun msg -> msg.Code = "CDB1003")
+        let msgs = CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
 
-              let fix =
-                  queryParamMsg.Fixes |> List.tryExactlyOne
+        let queryParamMsg =
+            msgs
+            |> List.find (fun msg -> msg.Code = "CDB1003")
 
-              Expect.isSome fix "One fix was found for NAME"
-              Expect.equal fix.Value.ToText "@name" "ToText matches provided parameter"
-              Expect.equal fix.Value.FromText "@NAME" "FromText matches used parameter"
-          }
+        let fix = queryParamMsg.Fixes |> List.tryExactlyOne
 
-          test "Provided params offed fix for used params" {
-              let query = "SELECT * FROM u WHERE u.Name = @NAME"
+        fix |> should be (ofCase <@ Some @>)
+        fix.Value.ToText |> should equal "@name"
+        fix.Value.FromText |> should equal "@NAME"
 
-              let queryOperation =
-                  { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
-                    range = range.Zero }
+    [<Fact>]
+    let ``Provided params offed fix for used params`` =
+        let query = "SELECT * FROM u WHERE u.Name = @NAME"
 
-              let parameters =
-                  [ { name = "@name"
-                      range = range.Zero
-                      paramFunc = ""
-                      paramFuncRange = range.Zero
-                      applicationRange = None } ]
+        let queryOperation =
+            { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
+              range = range.Zero }
 
-              let msgs =
-                  CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
+        let parameters =
+            [ { name = "@name"
+                range = range.Zero
+                paramFunc = ""
+                paramFuncRange = range.Zero
+                applicationRange = None } ]
 
-              let queryParamMsg =
-                  msgs
-                  |> List.find (fun msg -> msg.Message.Contains "name")
+        let msgs = CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
 
-              let fix =
-                  queryParamMsg.Fixes |> List.tryExactlyOne
+        let queryParamMsg =
+            msgs
+            |> List.find (fun msg -> msg.Message.Contains "name")
 
-              Expect.isSome fix "One fix was found for name"
-              Expect.equal fix.Value.ToText "\"@NAME\"" "ToText matches provided parameter"
-              Expect.equal fix.Value.FromText "@name" "FromText matches used parameter"
-          }
+        let fix = queryParamMsg.Fixes |> List.tryExactlyOne
 
-          test "Muliple params in query are fix options" {
-              let query =
-                  "SELECT * FROM u WHERE u.Name = @NAME AND u.Age = @age"
+        fix |> should be (ofCase <@ Some @>)
+        fix.Value.ToText |> should equal "\"@NAME\""
+        fix.Value.FromText |> should equal "@name"
 
-              let queryOperation =
-                  { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
-                    range = range.Zero }
+    [<Fact>]
+    let ``Muliple params in query are fix options`` =
+        let query = "SELECT * FROM u WHERE u.Name = @NAME AND u.Age = @age"
 
-              let parameters =
-                  [ { name = "@name"
-                      range = range.Zero
-                      paramFunc = ""
-                      paramFuncRange = range.Zero
-                      applicationRange = None }
-                    { name = "@age"
-                      range = range.Zero
-                      paramFunc = ""
-                      paramFuncRange = range.Zero
-                      applicationRange = None } ]
+        let queryOperation =
+            { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
+              range = range.Zero }
 
-              let msgs =
-                  CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
+        let parameters =
+            [ { name = "@name"
+                range = range.Zero
+                paramFunc = ""
+                paramFuncRange = range.Zero
+                applicationRange = None }
+              { name = "@age"
+                range = range.Zero
+                paramFunc = ""
+                paramFuncRange = range.Zero
+                applicationRange = None } ]
 
-              Expect.hasLength msgs 2 "Two errors between query and params"
+        let msgs = CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
 
-              let queryParamMsg =
-                  msgs
-                  |> List.find (fun msg -> msg.Message.Contains "@name")
+        msgs |> should haveLength 2
 
-              Expect.hasLength queryParamMsg.Fixes 2 "Two options to fix"
-          }
+        let queryParamMsg =
+            msgs
+            |> List.find (fun msg -> msg.Message.Contains "@name")
 
-          test "Params without @ at start are offered a fix" {
-              let query = "SELECT * FROM u WHERE u.Name = @name"
+        queryParamMsg.Fixes |> should haveLength 2
 
-              let queryOperation =
-                  { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
-                    range = range.Zero }
+    [<Fact>]
+    let ``Params without 'at' at start are offered a fix`` =
+        let query = "SELECT * FROM u WHERE u.Name = @name"
 
-              let parameters =
-                  [ { name = "name"
-                      range = range.Zero
-                      paramFunc = ""
-                      paramFuncRange = range.Zero
-                      applicationRange = None } ]
+        let queryOperation =
+            { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
+              range = range.Zero }
 
-              let msgs =
-                  CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
+        let parameters =
+            [ { name = "name"
+                range = range.Zero
+                paramFunc = ""
+                paramFuncRange = range.Zero
+                applicationRange = None } ]
 
-              let queryParamMsg =
-                  msgs
-                  |> List.find (fun msg -> msg.Code = Messaging.ParameterMissingSymbol.Code)
+        let msgs = CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
 
-              let fix = queryParamMsg.Fixes |> Seq.tryExactlyOne
+        let queryParamMsg =
+            msgs
+            |> List.find (fun msg -> msg.Code = Messaging.ParameterMissingSymbol.Code)
 
-              Expect.isSome fix (sprintf "A fix exists for %s" Messaging.ParameterMissingSymbol.Code)
-              Expect.equal fix.Value.FromText "name" "Starts from the parameter name"
-              Expect.equal fix.Value.ToText "\"@name\"" "Replacement contains @"
-          }
+        let fix = queryParamMsg.Fixes |> Seq.tryExactlyOne
 
-          test "Params with @ at start aren't offered a fix" {
-              let query = "SELECT * FROM u WHERE u.Name = @name"
+        fix |> should be (ofCase <@ Some @>)
+        fix.Value.FromText |> should equal "name"
+        fix.Value.ToText |> should equal "\"@name\""
 
-              let queryOperation =
-                  { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
-                    range = range.Zero }
+    [<Fact>]
+    let ``Params with 'at' at start aren't offered a fix`` =
+        let query = "SELECT * FROM u WHERE u.Name = @name"
 
-              let parameters =
-                  [ { name = "@name"
-                      range = range.Zero
-                      paramFunc = ""
-                      paramFuncRange = range.Zero
-                      applicationRange = None } ]
+        let queryOperation =
+            { blocks = [ CosmosAnalyzerBlock.Query(query, range.Zero) ]
+              range = range.Zero }
 
-              let msgs =
-                  CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
+        let parameters =
+            [ { name = "@name"
+                range = range.Zero
+                paramFunc = ""
+                paramFuncRange = range.Zero
+                applicationRange = None } ]
 
-              Expect.hasLength msgs 0 "No fixes required"
-          } ]
+        let msgs = CosmosCodeAnalyzer.analyzeParameters queryOperation parameters range.Zero
+
+        msgs |> should haveLength 0
