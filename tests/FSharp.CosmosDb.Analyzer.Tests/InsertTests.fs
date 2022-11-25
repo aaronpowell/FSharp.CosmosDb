@@ -6,7 +6,7 @@ open Xunit
 
 type ``Insert API can be analyzed``() =
     [<Fact>]
-    let ``Finds all the operations in a file`` =
+    let ``Finds all the operations in a file``() =
         match context (find "../samples/insertSample.fs") with
         | None -> failwith "Could not load test script"
         | Some context ->
@@ -14,7 +14,7 @@ type ``Insert API can be analyzed``() =
             1 |> should equal (List.length ops)
 
     [<Fact>]
-    let ``Found operation should have correct number of analysable bits`` =
+    let ``Found operation should have correct number of analysable bits``() =
         match context (find "../samples/insertSample.fs") with
         | None -> failwith "Could not load test script"
         | Some context ->
@@ -23,7 +23,7 @@ type ``Insert API can be analyzed``() =
             2 |> should equal (List.length head.blocks)
 
     [<Fact>]
-    let ``DatabaseId should match expected`` =
+    let ``DatabaseId should match expected``() =
         match context (find "../samples/insertSample.fs") with
         | None -> failwith "Could not load test script"
         | Some context ->
@@ -42,7 +42,7 @@ type ``Insert API can be analyzed``() =
             "UserDb" |> should equal dbId.Value
 
     [<Fact>]
-    let ``ContainerName should match expected`` =
+    let ``ContainerName should match expected``() =
         match context (find "../samples/insertSample.fs") with
         | None -> failwith "Could not load test script"
         | Some context ->

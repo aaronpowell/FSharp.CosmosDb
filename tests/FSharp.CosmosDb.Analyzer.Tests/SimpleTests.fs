@@ -6,7 +6,7 @@ open Xunit
 
 type ``Connection object discovery``() =
     [<Fact>]
-    let ``Finds all the operations in a file`` =
+    let ``Finds all the operations in a file``() =
         match context (find "../samples/simpleSample.fs") with
         | None -> failwith "Could not load test script"
         | Some context ->
@@ -14,7 +14,7 @@ type ``Connection object discovery``() =
             ops |> should haveLength 1
 
     [<Fact>]
-    let ``Found operation should have 2 analysable bits`` =
+    let ``Found operation should have 2 analysable bits``() =
         match context (find "../samples/simpleSample.fs") with
         | None -> failwith "Could not load test script"
         | Some context ->
@@ -23,7 +23,7 @@ type ``Connection object discovery``() =
             head.blocks |> should haveLength 2
 
     [<Fact>]
-    let ``DatabaseId should match expected`` =
+    let ``DatabaseId should match expected``() =
         match context (find "../samples/simpleSample.fs") with
         | None -> failwith "Could not load test script"
         | Some context ->
@@ -42,7 +42,7 @@ type ``Connection object discovery``() =
             dbId.Value |> should equal "UserDb"
 
     [<Fact>]
-    let ``ContainerName should match expected`` =
+    let ``ContainerName should match expected``() =
         match context (find "../samples/simpleSample.fs") with
         | None -> failwith "Could not load test script"
         | Some context ->

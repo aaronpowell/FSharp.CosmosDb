@@ -7,7 +7,7 @@ open Xunit
 
 type ``Query API can be analyzed``() =
     [<Fact>]
-    let ``Finds all the operations in a file`` =
+    let ``Finds all the operations in a file``() =
         match context (find "../samples/querySample.fs") with
         | None -> failwith "Could not load test script"
         | Some context ->
@@ -16,7 +16,7 @@ type ``Query API can be analyzed``() =
             ops |> should haveLength 1
 
     [<Fact>]
-    let ``Found operation should have 3 analysable bits`` =
+    let ``Found operation should have 3 analysable bits``() =
         match context (find "../samples/querySample.fs") with
         | None -> failwith "Could not load test script"
         | Some context ->
@@ -26,7 +26,7 @@ type ``Query API can be analyzed``() =
             head.blocks |> should haveLength 4
 
     [<Fact>]
-    let ``Query should match expected`` =
+    let ``Query should match expected``() =
         match context (find "../samples/querySample.fs") with
         | None -> failwith "Could not load test script"
         | Some context ->
@@ -47,7 +47,7 @@ type ``Query API can be analyzed``() =
             |> should equal "SELECT * FROM u WHERE u.Name = @name"
 
     [<Fact>]
-    let ``DatabaseId should match expected`` =
+    let ``DatabaseId should match expected``() =
         match context (find "../samples/querySample.fs") with
         | None -> failwith "Could not load test script"
         | Some context ->
@@ -67,7 +67,7 @@ type ``Query API can be analyzed``() =
             dbId.Value |> should equal "UserDb"
 
     [<Fact>]
-    let ``ContainerName should match expected`` =
+    let ``ContainerName should match expected``() =
         match context (find "../samples/querySample.fs") with
         | None -> failwith "Could not load test script"
         | Some context ->
@@ -87,7 +87,7 @@ type ``Query API can be analyzed``() =
             container.Value |> should equal "UserContainer"
 
     [<Fact>]
-    let ``Parameter should match expected`` =
+    let ``Parameter should match expected``() =
         match context (find "../samples/querySample.fs") with
         | None -> failwith "Could not load test script"
         | Some context ->

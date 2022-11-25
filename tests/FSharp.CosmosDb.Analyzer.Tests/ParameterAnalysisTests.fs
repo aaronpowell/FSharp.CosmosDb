@@ -9,7 +9,7 @@ open Xunit
 
 type Paramerers() =
     [<Fact>]
-    let ``All parameters matching returns no messages`` =
+    let ``All parameters matching returns no messages``() =
         let query = "SELECT * FROM u WHERE u.Name = @name"
 
         let queryOperation =
@@ -28,7 +28,7 @@ type Paramerers() =
         0 |> should equal msgs.Length
 
     [<Fact>]
-    let ``If parameter in query not in provided a warning is raised`` =
+    let ``If parameter in query not in provided a warning is raised``() =
         let query = "SELECT * FROM u WHERE u.Name = @name"
 
         let queryOperation =
@@ -42,7 +42,7 @@ type Paramerers() =
         1 |> should equal msgs.Length
 
     [<Fact>]
-    let ``If parameter provided but not used a warning is raised`` =
+    let ``If parameter provided but not used a warning is raised``() =
         let query = "SELECT * FROM u"
 
         let queryOperation =
@@ -61,7 +61,7 @@ type Paramerers() =
         1 |> should equal msgs.Length
 
     [<Fact>]
-    let ``Parameter name missmatch deteched`` =
+    let ``Parameter name missmatch deteched``() =
         let query = "SELECT * FROM u WHERE u.Name = @NAME"
 
         let queryOperation =
@@ -80,7 +80,7 @@ type Paramerers() =
         2 |> should equal msgs.Length
 
     [<Fact>]
-    let ``Params in query offered fix of defined`` =
+    let ``Params in query offered fix of defined``() =
         let query = "SELECT * FROM u WHERE u.Name = @NAME"
 
         let queryOperation =
@@ -107,7 +107,7 @@ type Paramerers() =
         fix.Value.FromText |> should equal "@NAME"
 
     [<Fact>]
-    let ``Provided params offed fix for used params`` =
+    let ``Provided params offed fix for used params``() =
         let query = "SELECT * FROM u WHERE u.Name = @NAME"
 
         let queryOperation =
@@ -134,7 +134,7 @@ type Paramerers() =
         fix.Value.FromText |> should equal "@name"
 
     [<Fact>]
-    let ``Muliple params in query are fix options`` =
+    let ``Muliple params in query are fix options``() =
         let query = "SELECT * FROM u WHERE u.Name = @NAME AND u.Age = @age"
 
         let queryOperation =
@@ -164,7 +164,7 @@ type Paramerers() =
         queryParamMsg.Fixes |> should haveLength 2
 
     [<Fact>]
-    let ``Params without 'at' at start are offered a fix`` =
+    let ``Params without 'at' at start are offered a fix``() =
         let query = "SELECT * FROM u WHERE u.Name = @name"
 
         let queryOperation =
@@ -191,7 +191,7 @@ type Paramerers() =
         fix.Value.ToText |> should equal "\"@name\""
 
     [<Fact>]
-    let ``Params with 'at' at start aren't offered a fix`` =
+    let ``Params with 'at' at start aren't offered a fix``() =
         let query = "SELECT * FROM u WHERE u.Name = @name"
 
         let queryOperation =
