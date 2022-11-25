@@ -149,23 +149,9 @@ Target.create "Changelog" (fun _ ->
     [| sprintf "%O" changelog |]
     |> File.append (nupkgPath </> "changelog.md"))
 
-Target.create "Analyzer Tests" (fun _ ->
-    DotNet.exec
-        (fun p -> { p with Timeout = Some(System.TimeSpan.FromMinutes 10.) })
-        "run"
-        """--project "./tests/FSharp.CosmosDb.Analyzer.Tests/FSharp.CosmosDb.Analyzer.Tests.fsproj" -- --fail-on-focused-tests --debug --summary"""
-    |> fun r ->
-        if not r.OK then
-            failwithf "Errors while running LSP tests:\n%s" (r.Errors |> String.concat "\n\t"))
+Target.create "Analyzer Tests" (fun _ -> DotNet.test id "./tests/FSharp.CosmosDb.Analyzer.Tests")
 
-Target.create "Integration Tests" (fun _ ->
-    DotNet.exec
-        (fun p -> { p with Timeout = Some(System.TimeSpan.FromMinutes 10.) })
-        "run"
-        """--project "./tests/FSharp.CosmosDb.Tests/FSharp.CosmosDb.Tests.fsproj" -- --fail-on-focused-tests --debug --summary"""
-    |> fun r ->
-        if not r.OK then
-            failwithf "Errors while running Integration tests:\n%s" (r.Errors |> String.concat "\n\t"))
+Target.create "Integration Tests" (fun _ -> DotNet.test id "./tests/FSharp.CosmosDb.Tests")
 
 Target.create "RunAnalyzer" (fun ctx ->
     let args =
@@ -176,7 +162,7 @@ Target.create "RunAnalyzer" (fun ctx ->
 
     DotNet.exec id "fsharp-analyzers" args |> ignore)
 
-Target.create "RunSample" (fun ctx ->
+Target.create "RunSample" (fun _ ->
     DotNet.exec id "run" "--project samples/FSharp.CosmosDb.Samples/FSharp.CosmosDb.Samples.fsproj"
     |> ignore)
 
