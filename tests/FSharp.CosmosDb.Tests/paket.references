@@ -1,0 +1,10 @@
+Microsoft.NET.Test.Sdk
+FSharp.Core
+System.Json
+FSharp.Control.AsyncSeq
+Microsoft.Extensions.Configuration
+Microsoft.Extensions.Configuration.Json
+Microsoft.Extensions.Configuration.EnvironmentVariables
+xunit
+xunit.runner.visualstudio
+FsUnit.xUnit

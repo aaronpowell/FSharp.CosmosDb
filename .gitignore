@@ -9,3 +9,4 @@ build.fsx.lock
 node_modules
 dist
 debug.log
+.vs

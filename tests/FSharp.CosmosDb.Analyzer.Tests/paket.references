@@ -1,6 +1,8 @@
-Expecto
 FSharp.Core
 FSharp.Analyzers.SDK
 FSharp.Compiler.Service
 Microsoft.NETFramework.ReferenceAssemblies
 Microsoft.NET.Test.Sdk
+xunit
+xunit.runner.visualstudio
+FsUnit.xUnit

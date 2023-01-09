@@ -11,10 +11,29 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
+
+    # container: mcr.microsoft.com/dotnet/nightly/sdk:6.0
+
+    services:
+      # Label used to access the service container
+      cosmosdb:
+        # Docker Hub image
+        image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+        env:
+          AZURE_COSMOS_EMULATOR_PARTITION_COUNT: 10
+          AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE: "true"
+        ports:
+          - 8081:8081
+        options: "--memory 3g --cpus=2.0"
+    env:
+      COSMOS__ENDPOINT: "https://cosmosdb:8081"
+      COSMOS__KEY: "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -26,6 +45,9 @@ jobs:
 
       - name: Restore dotnet tools
         run: dotnet tool restore
+
+      - run: |
+          docker ps -aq | xargs docker logs
 
       - name: Generate packages
         run: dotnet fake run ./build.fsx --target CI

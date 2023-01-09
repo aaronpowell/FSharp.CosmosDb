@@ -1,13 +1,11 @@
 namespace FSharp.CosmosDb
 
-open FSharp.CosmosDb
 open Microsoft.Azure.Cosmos
 open System.Threading
 open System.Threading.Tasks
 open System.Collections.Concurrent
 open System
 open System.Collections.Generic
-open System.Net.Http
 
 module internal Caching =
     let private clientCache = ConcurrentDictionary<string, CosmosClient>()
@@ -48,6 +46,28 @@ module internal Caching =
                     client)
         }
 
+    let removeFromCacheWithKey host' accessKey' =
+        maybe {
+            let! host = host'
+            let! accessKey = accessKey'
+            let connStr = sprintf "%s%s" host accessKey
+
+            return
+                clientCache
+                |> tryGetOption connStr
+                |> Option.iter (fun _ -> clientCache.Remove connStr |> ignore)
+        }
+
+    let removeFromCacheWithConnStr connStr =
+        maybe {
+            let! cs = connStr
+
+            return
+                clientCache
+                |> tryGetOption cs
+                |> Option.iter (fun _ -> clientCache.Remove cs |> ignore)
+        }
+
 type ConnectionOperation =
     { Options: CosmosClientOptions option
       FromConnectionString: bool
@@ -77,6 +97,14 @@ type ConnectionOperation =
         override this.Dispose() =
             let client = this.GetClient()
             client.Dispose()
+
+            (if this.FromConnectionString then
+                 Caching.removeFromCacheWithConnStr this.ConnectionString
+             else
+                 Caching.removeFromCacheWithKey this.Endpoint this.AccessKey)
+            |> ignore
+
+            ()
 
 // --- Operation Types --- //
 type QueryOp<'T> =

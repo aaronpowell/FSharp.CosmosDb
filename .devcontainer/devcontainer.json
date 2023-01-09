@@ -6,7 +6,9 @@
 
   // Use this environment variable if you need to bind mount your local source code into a new container.
   "remoteEnv": {
-    "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+    "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
+    "NODE_EXTRA_CA_CERTS": "/usr/local/share/ca-certificates/emulator.crt",
+    "ASPNETCORE_ENVIRONMENT": "Development"
   },
 
   "settings": {
@@ -30,7 +32,7 @@
   // "forwardPorts": [],
 
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "dotnet tool restore && dotnet restore && ./.devcontainer/start.sh",
+  "postCreateCommand": "./.devcontainer/start.sh && dotnet tool restore && dotnet restore",
 
   // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
   "remoteUser": "vscode"

@@ -11,7 +11,7 @@
       "processId": "${command:pickProcess}"
     },
     {
-      "name": "Run Tests",
+      "name": "Run Analyzer Tests",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
@@ -43,6 +43,20 @@
       "program": "${workspaceFolder}/samples/FSharp.CosmosDb.Samples.ChangeFeed/bin/Debug/net6.0/FSharp.CosmosDb.Samples.ChangeFeed.dll",
       "args": [],
       "cwd": "${workspaceFolder}/samples/FSharp.CosmosDb.Samples",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    {
+      "name": "Run Integration Tests",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/tests/FSharp.CosmosDb.Tests/bin/Debug/net6.0/FSharp.CosmosDb.Tests.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/tests/FSharp.CosmosDb.Tests",
       "stopAtEntry": false,
       "console": "internalConsole",
       "env": {
