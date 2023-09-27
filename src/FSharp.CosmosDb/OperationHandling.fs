@@ -31,10 +31,11 @@ let execQueryInternal
     (op: QueryOp<'T>)
     (queryOps: QueryRequestOptions)
     =
-    let connInfo = op.Connection
-    let client = getClient connInfo
 
     maybe {
+        let! connInfo = op.Connection
+        let client = getClient connInfo
+        
         let! databaseId = connInfo.DatabaseId
         let! containerName = connInfo.ContainerName
 

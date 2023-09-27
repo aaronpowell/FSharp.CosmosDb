@@ -5,35 +5,50 @@ open System
 
 [<RequireQualifiedAccess>]
 module Cosmos =
-    let private defaultConnectionOp () =
+    let private defaultConnectionOp parameters =
         { Options = None
-          FromConnectionString = false
-          Endpoint = None
-          AccessKey = None
-          ConnectionString = None
+          ConnectionParameters = parameters
           DatabaseId = None
           ContainerName = None }
 
     let fromConnectionString connString =
-        { defaultConnectionOp () with
-            FromConnectionString = true
-            ConnectionString = Some connString }
+        ConnectionString connString
+        |> defaultConnectionOp
 
     let fromConnectionStringWithOptions connString op =
-        { defaultConnectionOp () with
-            Options = Some op
-            FromConnectionString = true
-            ConnectionString = Some connString }
-
+        { fromConnectionString connString
+            with Options = Some op }
+        
+    let fromToken host token =
+        Token(host, token)
+        |> defaultConnectionOp
+        
+    let fromTokenWithOptions host token op =
+        { fromToken host token
+            with Options = op } 
+        
     let host endpoint =
-        { defaultConnectionOp () with Endpoint = Some endpoint }
-
+        Host endpoint
+        |> defaultConnectionOp
+        
+    let connect accessKey op =
+        match op.ConnectionParameters with
+        | Host endpoint -> { op with ConnectionParameters = KeyCredential(endpoint, accessKey) }
+        | _ -> failwith "No host provided. Start with the Cosmos.host function"
+        
     let connectWithOptions options accessKey op =
-        { op with
-            Options = Some options
-            AccessKey = accessKey }
-
-    let connect accessKey op = { op with AccessKey = Some accessKey }
+        {op with Options = Some options }
+        |> connect accessKey
+        
+    module Token =
+        let connect token op =
+            match op.ConnectionParameters with
+            | Host endpoint -> { op with ConnectionParameters = Token(endpoint, token) }
+            | _ -> failwith "No host provided. Start with the Cosmos.host function"
+            
+        let connectWithOptions options token op =
+            {op with Options = Some options }
+            |> connect token
 
     let database dbId op = { op with DatabaseId = Some dbId }
 
@@ -42,14 +57,14 @@ module Cosmos =
     // --- QUERY --- //
 
     let private defaultQueryOp () =
-        { Connection = defaultConnectionOp ()
+        { Connection = None
           Query = None
           Parameters = [] }
 
     let query<'T> query op : QueryOp<'T> =
         { defaultQueryOp () with
             Query = Some query
-            Connection = op }
+            Connection = Some op }
 
     let parameters arr op =
         { op with QueryOp.Parameters = op.Parameters @ arr }
