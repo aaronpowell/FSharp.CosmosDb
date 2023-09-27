@@ -1,20 +1,18 @@
 namespace FSharp.CosmosDb
 
-open FSharp.CosmosDb
 open Microsoft.Azure.Cosmos
 open System.Threading
 open System.Threading.Tasks
 open System.Collections.Concurrent
 open System
 open System.Collections.Generic
-open System.Net.Http
 
 module internal Caching =
     let private clientCache = ConcurrentDictionary<string, CosmosClient>()
 
     let inline private tryGetOption key (cd: ConcurrentDictionary<_, _>) =
         if cd.ContainsKey key then
-            Some(cd.[key])
+            Some(cd[key])
         else
             None
 
@@ -27,7 +25,7 @@ module internal Caching =
                 |> tryGetOption cs
                 |> Option.defaultWith (fun () ->
                     let client = new CosmosClient(cs, clientOps)
-                    clientCache.[cs] <- client
+                    clientCache[cs] <- client
                     client)
         }
 
@@ -36,7 +34,7 @@ module internal Caching =
             let! host = host'
             let! accessKey = accessKey'
 
-            let connStr = sprintf "%s%s" host accessKey
+            let connStr = $"%s{host}%s{accessKey}"
 
             return
                 clientCache
@@ -44,7 +42,7 @@ module internal Caching =
                 |> Option.defaultWith (fun () ->
                     let client = new CosmosClient(host, accessKey, clientOps)
 
-                    clientCache.[connStr] <- client
+                    clientCache[connStr] <- client
                     client)
         }
 

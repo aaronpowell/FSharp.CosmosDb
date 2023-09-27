@@ -34,7 +34,7 @@ let tests =
                   let dbId =
                       head.blocks
                       |> List.tryFind (function
-                          | CosmosAnalyzerBlock.DatabaseId(_) -> true
+                          | CosmosAnalyzerBlock.DatabaseId _ -> true
                           | _ -> false)
                       |> Option.map (function
                           | CosmosAnalyzerBlock.DatabaseId(dbId, _) -> dbId
@@ -53,7 +53,7 @@ let tests =
                   let container =
                       head.blocks
                       |> List.tryFind (function
-                          | CosmosAnalyzerBlock.ContainerName(_) -> true
+                          | CosmosAnalyzerBlock.ContainerName _ -> true
                           | _ -> false)
                       |> Option.map (function
                           | CosmosAnalyzerBlock.ContainerName(containerName, _) -> containerName

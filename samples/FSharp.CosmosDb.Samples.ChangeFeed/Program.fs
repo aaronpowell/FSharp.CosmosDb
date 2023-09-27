@@ -15,7 +15,7 @@ let getFamiliesConnection host key =
 [<EntryPoint>]
 let main argv =
     let environmentName =
-        System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+        Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
 
     let builder =
         JsonConfigurationExtensions.AddJsonFile(
@@ -25,7 +25,7 @@ let main argv =
                 true,
                 true
             ),
-            sprintf "appsettings.%s.json" environmentName,
+            $"appsettings.%s{environmentName}.json",
             true,
             true
         )
@@ -38,7 +38,7 @@ let main argv =
         let conn = getFamiliesConnection host key
 
         let onChange changes _ =
-            printfn "Changes: %A" changes
+            printfn $"Changes: %A{changes}"
             System.Threading.Tasks.Task.CompletedTask
 
         let processor =

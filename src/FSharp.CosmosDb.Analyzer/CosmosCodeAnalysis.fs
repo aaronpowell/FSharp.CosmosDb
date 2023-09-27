@@ -13,7 +13,7 @@ module CosmosCodeAnalysis =
     let checkIfApply funcExpr argExpr range =
         match funcExpr with
         | SynExpr.Ident ident -> Some(ident.idText, argExpr, funcExpr.Range, range)
-        | SynExpr.LongIdent (_, LongIdentWithDots (listOfIds, _), _, _) ->
+        | SynExpr.LongIdent (_, SynLongIdent (listOfIds, _, _), _, _) ->
             Some(dotConcat listOfIds, argExpr, funcExpr.Range, range)
         | _ -> None
 
@@ -25,7 +25,7 @@ module CosmosCodeAnalysis =
 
     let (|LongIdent|_|) =
         function
-        | SynExpr.LongIdent (_, LongIdentWithDots (listOfIds, _), _, _) -> Some(dotConcat listOfIds, range)
+        | SynExpr.LongIdent (_, SynLongIdent (listOfIds, _, _), _, _) -> Some(dotConcat listOfIds, range)
         | _ -> None
 
     // for match of:
@@ -41,7 +41,7 @@ module CosmosCodeAnalysis =
     // Cosmos.query query ...
     let (|LiteralQuery|_|) =
         function
-        | Apply ("Cosmos.query", SynExpr.Ident (identifier), funcRange, _) -> Some(identifier.idText, funcRange)
+        | Apply ("Cosmos.query", SynExpr.Ident identifier, funcRange, _) -> Some(identifier.idText, funcRange)
         | _ -> None
 
     // for match of:
@@ -50,7 +50,7 @@ module CosmosCodeAnalysis =
         match synExpr with
         | SynExpr.App (_,
                        _,
-                       (SynExpr.TypeApp (SynExpr.LongIdent (_, LongIdentWithDots (listOfIds, _), _, _),
+                       (SynExpr.TypeApp (SynExpr.LongIdent (_, SynLongIdent (listOfIds, _, _), _, _),
                                          _,
                                          typeNames,
                                          _,
@@ -65,7 +65,7 @@ module CosmosCodeAnalysis =
                     typeNames
                     |> List.choose (fun typeName ->
                         match typeName with
-                        | SynType.LongIdent (LongIdentWithDots (listOfIds, _)) -> dotConcat listOfIds |> Some
+                        | SynType.LongIdent (SynLongIdent (listOfIds, _, _)) -> dotConcat listOfIds |> Some
                         | _ -> None)
 
                 Some(names, query, queryRange)
@@ -80,7 +80,7 @@ module CosmosCodeAnalysis =
 
     let (|LiteralDatabase|_|) =
         function
-        | Apply ("Cosmos.database", SynExpr.Ident (identifier), funcRange, _) -> Some(identifier.idText, funcRange)
+        | Apply ("Cosmos.database", SynExpr.Ident identifier, funcRange, _) -> Some(identifier.idText, funcRange)
         | _ -> None
 
     let (|Container|_|) =
@@ -91,7 +91,7 @@ module CosmosCodeAnalysis =
 
     let (|LiteralContainer|_|) =
         function
-        | Apply ("Cosmos.container", SynExpr.Ident (identifier), funcRange, _) -> Some(identifier.idText, funcRange)
+        | Apply ("Cosmos.container", SynExpr.Ident identifier, funcRange, _) -> Some(identifier.idText, funcRange)
         | _ -> None
 
     let (|ParameterTuple|_|) =
@@ -102,13 +102,13 @@ module CosmosCodeAnalysis =
                          _,
                          _) -> Some(parameterName, paramRange, funcName, funcRange, Some appRange)
         | SynExpr.Tuple (_,
-                         [ SynExpr.Const (SynConst.String (parameterName, _, paramRange), constRange); secondItem ],
+                         [ SynExpr.Const (SynConst.String (parameterName, _, paramRange), _); secondItem ],
                          _,
                          _) ->
             match secondItem with
             | SynExpr.LongIdent (_, longDotId, _, identRange) ->
                 match longDotId with
-                | LongIdentWithDots (listOfIds, _) ->
+                | SynLongIdent (listOfIds, _, _) ->
                     let fullName =
                         listOfIds
                         |> List.map (fun id -> id.idText)
@@ -117,10 +117,10 @@ module CosmosCodeAnalysis =
                     Some(parameterName, paramRange, fullName, identRange, None)
             | _ -> None
         | SynExpr.Tuple (_, [ firstItem; secondItem ], _, _) ->
-            printfn "Tuple: %A %A" firstItem secondItem
+            printfn $"Tuple: %A{firstItem} %A{secondItem}"
             None
         | x ->
-            printfn "No idea: %A" x
+            printfn $"No idea: %A{x}"
             None
 
     let rec readParameters =
@@ -191,11 +191,11 @@ module CosmosCodeAnalysis =
 
     // This represents the "tail" of our AST, so we match on all the ways that it could end
     // and then walk backwards from there to find the other parts that should exist
-    let rec visitSyntacticExpression (expr: SynExpr) (fullExpressionRange: range) =
+    let rec visitSyntacticExpression (expr: SynExpr) =
         match expr with
         | SynExpr.App (_, _, funcExpr, argExpr, range) ->
             match argExpr with
-            | Apply (("Cosmos.execAsync"), _, _, _) ->
+            | Apply ("Cosmos.execAsync", _, _, _) ->
                 let blocks =
                     [ yield! findQuery funcExpr
                       yield! findDatabase funcExpr
@@ -204,7 +204,7 @@ module CosmosCodeAnalysis =
 
                 [ { blocks = blocks; range = range } ]
 
-            | LongIdent (("Cosmos.execAsync"), appRange) ->
+            | LongIdent ("Cosmos.execAsync", _) ->
                 let blocks =
                     [ yield! findQuery funcExpr
                       yield! findDatabase funcExpr
@@ -266,8 +266,8 @@ module CosmosCodeAnalysis =
 
             | _ -> []
 
-        | SynExpr.LetOrUse (_, _, bindings, body, range, _) ->
-            [ yield! visitSyntacticExpression body range
+        | SynExpr.LetOrUse (_, _, bindings, body, _, _) ->
+            [ yield! visitSyntacticExpression body
               for binding in bindings do
                   yield! visitBinding binding ]
 
@@ -275,19 +275,19 @@ module CosmosCodeAnalysis =
 
     and visitBinding (binding: SynBinding) : CosmosOperation list =
         match binding with
-        | SynBinding (_, _, _, _, _, _, _, _, _, expr, range, _, _) -> visitSyntacticExpression expr range
+        | SynBinding (_, _, _, _, _, _, _, _, _, expr, _, _, _) -> visitSyntacticExpression expr
 
 
-    let findOperations (ctx: Context) =
+    let findOperations (ctx: EditorContext) =
         let operations = ResizeArray<CosmosOperation>()
 
-        match ctx.ParseTree with
+        match ctx.ParseFileResults.ParseTree with
         | ParsedInput.ImplFile input ->
             match input with
-            | ParsedImplFileInput (_, _, _, _, _, modules, _, _) ->
+            | ParsedImplFileInput (_, _, _, _, _, modules, _, _, _) ->
                 for parsedModule in modules do
                     match parsedModule with
-                    | SynModuleOrNamespace (_, _, _, declarations, _, _, _, _) ->
+                    | SynModuleOrNamespace (_, _, _, declarations, _, _, _, _, _) ->
                         for declaration in declarations do
                             match declaration with
                             | SynModuleDecl.Let (_, bindings, _) ->

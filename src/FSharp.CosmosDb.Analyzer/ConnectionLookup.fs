@@ -23,10 +23,10 @@ let private findFromEnv () =
     let cs = gev "FSHARP_COSMOS_CONNSTR"
 
     match host, key, cs with
-    | (Some host, Some key, None) ->
-        sprintf "AccountEndpoint=%s;AccountKey=%s;" host key
+    | Some host, Some key, None ->
+        $"AccountEndpoint=%s{host};AccountKey=%s{key};"
         |> Some
-    | (None, None, cs) -> cs
+    | None, None, cs -> cs
     | _ -> None
 
 let private possibleFileNames =
@@ -41,7 +41,7 @@ type AppSettings =
 let private findFromAppSettings relativeFile =
     let folders =
         [ Environment.CurrentDirectory
-          ((FileInfo(relativeFile)).Directory).FullName ]
+          FileInfo(relativeFile).Directory.FullName ]
 
     let settingsFiles =
         possibleFileNames
@@ -68,11 +68,11 @@ let private findFromAppSettings relativeFile =
             match config.CosmosConnection with
             | Some cc ->
                 match cc.ConnectionString, cc.Host, cc.Key with
-                | (Some cs, None, None) when stringHasValue cs -> true
-                | (Some cs, Some _, Some _) when stringHasValue cs -> true
-                | (Some _, Some host, Some key) when stringHasValue host && stringHasValue key -> true
-                | (None, Some host, Some key) when stringHasValue host && stringHasValue key -> true
-                | (_, _, _) -> false
+                | Some cs, None, None when stringHasValue cs -> true
+                | Some cs, Some _, Some _ when stringHasValue cs -> true
+                | Some _, Some host, Some key when stringHasValue host && stringHasValue key -> true
+                | None, Some host, Some key when stringHasValue host && stringHasValue key -> true
+                | _, _, _ -> false
             | None -> false)
         |> List.tryHead
 
@@ -82,12 +82,12 @@ let private findFromAppSettings relativeFile =
         match config.CosmosConnection with
         | Some cc ->
             match cc.ConnectionString, cc.Host, cc.Key with
-            | (Some cs, None, None) when stringHasValue cs -> Some cs
-            | (Some cs, Some _, Some _) when stringHasValue cs -> Some cs
-            | (Some _, Some host, Some key) when stringHasValue host && stringHasValue key ->
+            | Some cs, None, None when stringHasValue cs -> Some cs
+            | Some cs, Some _, Some _ when stringHasValue cs -> Some cs
+            | Some _, Some host, Some key when stringHasValue host && stringHasValue key ->
                 makeConnStr host key |> Some
-            | (None, Some host, Some key) when stringHasValue host && stringHasValue key -> makeConnStr host key |> Some
-            | (_, _, _) -> None
+            | None, Some host, Some key when stringHasValue host && stringHasValue key -> makeConnStr host key |> Some
+            | _, _, _ -> None
         | None -> None
 
 let findConnectionString relativeFile =

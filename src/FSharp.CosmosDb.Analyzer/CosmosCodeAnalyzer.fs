@@ -33,14 +33,14 @@ module CosmosCodeAnalyzer =
             ->
             Error "Could not establish Cosmos DB connection."
         | ex ->
-            printfn "%A" ex
+            printfn $"%A{ex}"
             Error "Something unknown happened when trying to access Cosmos DB"
 
     let findDatabaseOperation (operation: CosmosOperation) =
         operation.blocks
         |> List.tryFind
             (function
-            | CosmosAnalyzerBlock.DatabaseId (_) -> true
+            | CosmosAnalyzerBlock.DatabaseId _ -> true
             | _ -> false)
         |> Option.map
             (function
@@ -51,7 +51,7 @@ module CosmosCodeAnalyzer =
         async {
             let! result =
                 cosmosClient.GetDatabaseQueryIterator<DatabaseProperties>()
-                |> AsyncSeq.ofAsyncFeedIterator
+                |> ofAsyncFeedIterator
                 |> AsyncSeq.toListAsync
 
             let matching =
@@ -63,7 +63,7 @@ module CosmosCodeAnalyzer =
                     []
                 else
                     let msg =
-                        Messaging.warning (sprintf "The database '%s' was not found." databaseId) range
+                        Messaging.warning $"The database '%s{databaseId}' was not found." range
 
                     let fixes =
                         result
@@ -71,7 +71,7 @@ module CosmosCodeAnalyzer =
                             (fun prop ->
                                 { FromRange = range
                                   FromText = databaseId
-                                  ToText = sprintf "\"%s\"" prop.Id })
+                                  ToText = $"\"%s{prop.Id}\"" })
 
                     [ { msg with Fixes = fixes } ]
         }
@@ -81,7 +81,7 @@ module CosmosCodeAnalyzer =
         operation.blocks
         |> List.tryFind
             (function
-            | CosmosAnalyzerBlock.ContainerName (_) -> true
+            | CosmosAnalyzerBlock.ContainerName _ -> true
             | _ -> false)
         |> Option.map
             (function
@@ -95,7 +95,7 @@ module CosmosCodeAnalyzer =
                     cosmosClient
                         .GetDatabase(databaseId)
                         .GetContainerQueryIterator<ContainerProperties>()
-                    |> AsyncSeq.ofAsyncFeedIterator
+                    |> ofAsyncFeedIterator
                     |> AsyncSeq.toListAsync
 
                 let matching =
@@ -107,7 +107,7 @@ module CosmosCodeAnalyzer =
                         []
                     else
                         let msg =
-                            Messaging.warning (sprintf "The container name '%s' was not found." containerName) range
+                            Messaging.warning $"The container name '%s{containerName}' was not found." range
 
                         let fixes =
                             result
@@ -115,7 +115,7 @@ module CosmosCodeAnalyzer =
                                 (fun prop ->
                                     { FromRange = range
                                       FromText = containerName
-                                      ToText = sprintf "\"%s\"" prop.Id })
+                                      ToText = $"\"%s{prop.Id}\"" })
 
                         [ { msg with Fixes = fixes } ]
             with
@@ -126,7 +126,7 @@ module CosmosCodeAnalyzer =
                 return
                     [ Messaging.warning "Failed to retrieve container names, database name is probably invalid." range ]
             | ex ->
-                printfn "%O" ex
+                printfn $"{ex}"
                 return [ Messaging.error "Fatal error talking to Cosmos DB" range ]
         }
         |> Async.RunSynchronously
@@ -135,7 +135,7 @@ module CosmosCodeAnalyzer =
         operation.blocks
         |> List.tryFind
             (function
-            | CosmosAnalyzerBlock.Parameters (_) -> true
+            | CosmosAnalyzerBlock.Parameters _ -> true
             | _ -> false)
         |> Option.map
             (function
@@ -146,7 +146,7 @@ module CosmosCodeAnalyzer =
         operation.blocks
         |> List.tryFind
             (function
-            | CosmosAnalyzerBlock.Query (_) -> true
+            | CosmosAnalyzerBlock.Query _ -> true
             | _ -> false)
         |> Option.map
             (function
@@ -170,7 +170,7 @@ module CosmosCodeAnalyzer =
                         m.Groups
                         |> Seq.cast<Group>
                         |> Seq.skip 1
-                        |> Seq.map (fun g -> sprintf "@%s" g.Value))
+                        |> Seq.map (fun g -> $"@%s{g.Value}"))
                 |> Seq.collect id
                 |> Seq.distinct
                 |> Set.ofSeq
@@ -196,7 +196,7 @@ module CosmosCodeAnalyzer =
 
                         let msg =
                             Messaging.warning
-                                (sprintf "The parameter '%s' is defined but not used in the query" p)
+                                $"The parameter '%s{p}' is defined but not used in the query"
                                 up.range
 
                         { msg with
@@ -209,7 +209,7 @@ module CosmosCodeAnalyzer =
                                       (fun piq ->
                                           { FromRange = up.range
                                             FromText = p
-                                            ToText = sprintf "\"%s\"" piq }) })
+                                            ToText = $"\"%s{piq}\"" }) })
 
             let missingParams =
                 usedByNotSupplied
@@ -230,7 +230,7 @@ module CosmosCodeAnalyzer =
 
                         let msg =
                             Messaging.warning
-                                (sprintf "The parameter '%s' is defined but not provided" p)
+                                $"The parameter '%s{p}' is defined but not provided"
                                 paramRangeInQuery
 
                         { msg with
@@ -250,7 +250,7 @@ module CosmosCodeAnalyzer =
                 |> List.map
                     (fun param ->
                         let msg =
-                            Messaging.error (sprintf "The parameter '%s' is missing an '@'" param.name) param.range
+                            Messaging.error $"The parameter '%s{param.name}' is missing an '@'" param.range
 
                         { msg with
                               Code = Messaging.ParameterMissingSymbol.Code
@@ -268,4 +268,4 @@ module CosmosCodeAnalyzer =
             suppliedParameters
             |> List.map
                 (fun p ->
-                    Messaging.warning (sprintf "The parameter '%s' is defined but not used in the query" p.name) p.range)
+                    Messaging.warning $"The parameter '%s{p.name}' is defined but not used in the query" p.range)
