@@ -1,4 +1,8 @@
 # Changelog for `FSharp.CosmosDb`
+## [1.3.0] - Unreleased
+
+- Updating to the latest version of Microsoft.Azure.Cosmos (3.35.4)
+- Updating the Analyzer to the latest version of FSharp.Analyzers.SDK (0.14.1)
 
 ## [1.2.1] - 2022-11-22
 
