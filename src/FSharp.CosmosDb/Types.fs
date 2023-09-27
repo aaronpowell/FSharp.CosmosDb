@@ -1,59 +1,43 @@
 namespace FSharp.CosmosDb
 
-open FSharp.CosmosDb
+open Azure
+open Azure.Core
 open Microsoft.Azure.Cosmos
 open System.Threading
 open System.Threading.Tasks
 open System.Collections.Concurrent
 open System
 open System.Collections.Generic
-open System.Net.Http
 
 module internal Caching =
     let private clientCache = ConcurrentDictionary<string, CosmosClient>()
 
-    let inline private tryGetOption key (cd: ConcurrentDictionary<_, _>) =
-        if cd.ContainsKey key then
-            Some(cd.[key])
-        else
-            None
+    let inline private add key builder (cd: ConcurrentDictionary<_, _>) =
+        cd.AddOrUpdate(key, (fun _ -> builder()), (fun _ _ -> builder()))
 
-    let fromConnStr connStr clientOps =
-        maybe {
-            let! cs = connStr
+    let fromConnStr connectionString clientOps =
+        clientCache
+        |> add connectionString (fun () -> new CosmosClient(connectionString, clientOps))
 
-            return
-                clientCache
-                |> tryGetOption cs
-                |> Option.defaultWith (fun () ->
-                    let client = new CosmosClient(cs, clientOps)
-                    clientCache.[cs] <- client
-                    client)
-        }
-
-    let fromKey host' accessKey' clientOps =
-        maybe {
-            let! host = host'
-            let! accessKey = accessKey'
-
-            let connStr = $"%s{host}%s{accessKey}"
-
-            return
-                clientCache
-                |> tryGetOption connStr
-                |> Option.defaultWith (fun () ->
-                    let client = new CosmosClient(host, accessKey, clientOps)
-
-                    clientCache.[connStr] <- client
-                    client)
-        }
+    let fromKey host accessKey clientOps =
+        let connStr = $"%s{host}%s{accessKey}"
+        clientCache
+        |> add connStr (fun () -> new CosmosClient(host, accessKey, clientOps))
+        
+    let fromToken host token clientOps =
+        let connStr = $"%s{host}%s{token.ToString()}"
+        clientCache
+        |> add connStr (fun () -> new CosmosClient(host, (token: TokenCredential), clientOps))
+        
+type ConnectionParameters =
+    | Host of endpoint:string
+    | ConnectionString of connectionString: string
+    | KeyCredential of endpoint:string * credential: string
+    | Token of endpoint:string * TokenCredential
 
 type ConnectionOperation =
     { Options: CosmosClientOptions option
-      FromConnectionString: bool
-      Endpoint: string option
-      AccessKey: string option
-      ConnectionString: string option
+      ConnectionParameters: ConnectionParameters
       DatabaseId: string option
       ContainerName: string option }
 
@@ -63,16 +47,12 @@ type ConnectionOperation =
             | Some op -> op
             | None -> CosmosClientOptions()
 
-        let client =
-            if this.FromConnectionString then
-                Caching.fromConnStr this.ConnectionString clientOps
-            else
-                Caching.fromKey this.Endpoint this.AccessKey clientOps
-
-        match client with
-        | Some client -> client
-        | None -> failwith "No connection information provided"
-
+        match this.ConnectionParameters with
+        | ConnectionString connectionString -> Caching.fromConnStr connectionString clientOps
+        | KeyCredential(endpoint, credential) -> Caching.fromKey endpoint credential clientOps
+        | Token(endpoint, token) -> Caching.fromToken endpoint token clientOps
+        | Host _ -> failwith "No credentials provided"
+        
     interface IDisposable with
         override this.Dispose() =
             let client = this.GetClient()
@@ -80,7 +60,7 @@ type ConnectionOperation =
 
 // --- Operation Types --- //
 type QueryOp<'T> =
-    { Connection: ConnectionOperation
+    { Connection: ConnectionOperation option
       Query: string option
       Parameters: (string * obj) list }
 
