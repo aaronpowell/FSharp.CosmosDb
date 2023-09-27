@@ -10,11 +10,5 @@
     <Compile Include="simpleSample.fs" />
     <Compile Include="querySample.fs" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="1.1.1" />
-    <PackageReference Update="FSharp.Core">
-      <Version>7.0.400</Version>
-    </PackageReference>
-  </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
