@@ -31,11 +31,10 @@ let execQueryInternal
     (op: QueryOp<'T>)
     (queryOps: QueryRequestOptions)
     =
+    let connInfo = op.Connection
+    let client = getClient connInfo
 
     maybe {
-        let! connInfo = op.Connection
-        let client = getClient connInfo
-        
         let! databaseId = connInfo.DatabaseId
         let! containerName = connInfo.ContainerName
 
@@ -79,7 +78,7 @@ let execCheckIfDatabaseExists (getClient: ConnectionOperation -> CosmosClient) (
     match connInfo.DatabaseId with
     | Some databaseId ->
         iterator
-        |> AsyncSeq.unfold (fun t ->
+        |> AsyncSeq.unfold (fun _ ->
             if iterator.HasMoreResults then
                 Some(iterator.ReadNextAsync(), iterator)
             else
@@ -258,7 +257,7 @@ let execGetContainerProperties (getClient: ConnectionOperation -> CosmosClient) 
                 .GetContainerQueryIterator<ContainerProperties>()
 
     iterator
-    |> AsyncSeq.unfold (fun t ->
+    |> AsyncSeq.unfold (fun _ ->
         if iterator.HasMoreResults then
             Some(iterator.ReadNextAsync(), iterator)
         else
