@@ -12,9 +12,9 @@ let checker =
 
 let loadProject file =
     async {
-        let! source = IO.File.ReadAllTextAsync file |> Async.AwaitTask
+        let! source = File.ReadAllTextAsync file |> Async.AwaitTask
 
-        let! (opts, error) =
+        let! opts, error =
             checker.GetProjectOptionsFromScript(
                 file,
                 SourceText.ofString source,
@@ -32,15 +32,15 @@ let typeCheckFile (file, opts) =
     let text = File.ReadAllText file
     let st = SourceText.ofString text
 
-    let (parseRes, checkAnswer) =
+    let parseRes, checkAnswer =
         checker.ParseAndCheckFileInProject(file, 1, st, opts)
         |> Async.RunSynchronously
 
     match checkAnswer with
     | FSharpCheckFileAnswer.Aborted ->
-        printfn "Checking of file %s aborted because %A" file parseRes.Diagnostics
+        printfn $"Checking of file %s{file} aborted because %A{parseRes.Diagnostics}"
         None
-    | FSharpCheckFileAnswer.Succeeded (c) -> Some(file, text, parseRes, c)
+    | FSharpCheckFileAnswer.Succeeded c -> Some(file, text, parseRes, c)
 
 let entityCache = EntityCache()
 
@@ -79,26 +79,28 @@ let getAllEntities (checkResults: FSharpCheckFileResults) (publicOnly: bool) : A
 
 let createContext (file, text: string, p: FSharpParseFileResults, c: FSharpCheckFileResults) =
     match c.ImplementationFile with
-    | Some tast ->
-        let context: Context =
-            { FileName = file
-              Content = text.Split([| '\n' |])
-              ParseTree = p.ParseTree
-              TypedTree = tast
-              Symbols = c.PartialAssemblySignature.Entities |> Seq.toList
-              GetAllEntities = getAllEntities c }
+    | Some typedAST ->
+        let context: EditorContext =
+            {
+                FileName = file
+                SourceText = SourceText.ofString(text)
+                ParseFileResults = p
+                CheckFileResults = Some c
+                TypedTree = Some typedAST
+                CheckProjectResults = None
+            }
 
         Some context
     | _ -> None
 
 let context proj =
-    printfn "proj path is %s" proj
+    printfn $"proj path is %s{proj}"
 
     let path =
         Path.Combine(Environment.CurrentDirectory, proj)
         |> Path.GetFullPath
 
-    printfn "Normalised path to %s" path
+    printfn $"Normalised path to %s{path}"
 
     loadProject path
     |> typeCheckFile

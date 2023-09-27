@@ -57,7 +57,7 @@ let execQuery (getClient: ConnectionOperation -> CosmosClient) (op: QueryOp<'T>)
     let result = execQueryInternal getClient op (QueryRequestOptions())
 
     match result with
-    | Some result -> result |> AsyncSeq.ofAsyncFeedIterator
+    | Some result -> result |> ofAsyncFeedIterator
     | None ->
         failwith "Unable to construct a query as some values are missing across the database, container name and query"
 
@@ -65,7 +65,7 @@ let execQueryBatch (getClient: ConnectionOperation -> CosmosClient) (op: QueryOp
     let result = execQueryInternal getClient op queryOps
 
     match result with
-    | Some result -> result |> AsyncSeq.ofAsyncFeedIterator
+    | Some result -> result |> ofAsyncFeedIterator
     | None ->
         failwith "Unable to construct a query as some values are missing across the database, container name and query"
 
@@ -378,7 +378,7 @@ let execCreateContainer (getClient: ConnectionOperation -> CosmosClient) (op: Cr
 
             let! partitionKey = PartitionKeyAttributeTools.findPartitionKey<'T> ()
 
-            let properties = ContainerProperties(containerName, sprintf "/%s" partitionKey.Name)
+            let properties = ContainerProperties(containerName, $"/%s{partitionKey.Name}")
 
             return
                 db.CreateContainerAsync properties
@@ -412,7 +412,7 @@ let execCreateContainerIfNotExists
 
             let! partitionKey = PartitionKeyAttributeTools.findPartitionKey<'T> ()
 
-            let properties = ContainerProperties(containerName, sprintf "/%s" partitionKey.Name)
+            let properties = ContainerProperties(containerName, $"/%s{partitionKey.Name}")
 
             return
                 db.CreateContainerIfNotExistsAsync properties

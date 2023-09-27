@@ -196,7 +196,7 @@ let tests =
 
               let fix = queryParamMsg.Fixes |> Seq.tryExactlyOne
 
-              Expect.isSome fix (sprintf "A fix exists for %s" Messaging.ParameterMissingSymbol.Code)
+              Expect.isSome fix $"A fix exists for %s{Messaging.ParameterMissingSymbol.Code}"
               Expect.equal fix.Value.FromText "name" "Starts from the parameter name"
               Expect.equal fix.Value.ToText "\"@name\"" "Replacement contains @"
           }

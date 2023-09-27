@@ -65,7 +65,7 @@ let main argv =
                     true,
                     true
                 ),
-                sprintf "appsettings.%s.json" environmentName,
+                $"appsettings.%s{environmentName}.json",
                 true,
                 true
             )
@@ -117,25 +117,25 @@ let main argv =
 
         do!
             insert
-            |> AsyncSeq.iter (fun f -> printfn "Inserted: %A" f)
+            |> AsyncSeq.iter (fun f -> printfn $"Inserted: %A{f}")
 
         let families = getFamilies conn
 
         do!
             families
-            |> AsyncSeq.iter (fun f -> printfn "Got: %A" f)
+            |> AsyncSeq.iter (fun f -> printfn $"Got: %A{f}")
 
         let updatePowell = updateFamily conn "Powell.1" "Powell"
 
         do!
             updatePowell
-            |> AsyncSeq.iter (fun f -> printfn "Updated: %A" f)
+            |> AsyncSeq.iter (fun f -> printfn $"Updated: %A{f}")
 
         let deletePowell = deleteFamily conn "Powell.1" "Powell"
 
         do!
             deletePowell
-            |> AsyncSeq.iter (fun f -> printfn "Deleted: %A" f)
+            |> AsyncSeq.iter (fun f -> printfn $"Deleted: %A{f}")
 
         do!
             conn
@@ -143,7 +143,7 @@ let main argv =
             |> Cosmos.execAsync
             |> AsyncSeq.map (fun f -> { f with LastName = "Powellz" })
             |> AsyncSeq.map (fun f -> conn |> Cosmos.replace f |> Cosmos.execAsync)
-            |> AsyncSeq.iter (fun f -> printfn "Replaced: %A" f)
+            |> AsyncSeq.iter (fun f -> printfn $"Replaced: %A{f}")
 
         // do!
         //     conn

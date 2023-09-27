@@ -12,7 +12,7 @@ nuget Microsoft.Extensions.Configuration
 nuget Microsoft.Extensions.Configuration.Json
 nuget Expecto
 nuget YoloDev.Expecto.TestSdk
-nuget Microsoft.NET.Test.Sdk 16.8.3
+nuget Microsoft.NET.Test.Sdk
 nuget Microsoft.SourceLink.GitHub copy_local: true
 nuget Microsoft.NETFramework.ReferenceAssemblies copy_local: true
 nuget Microsoft.Build

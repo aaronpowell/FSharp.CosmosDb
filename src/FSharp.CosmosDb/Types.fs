@@ -36,7 +36,7 @@ module internal Caching =
             let! host = host'
             let! accessKey = accessKey'
 
-            let connStr = sprintf "%s%s" host accessKey
+            let connStr = $"%s{host}%s{accessKey}"
 
             return
                 clientCache
