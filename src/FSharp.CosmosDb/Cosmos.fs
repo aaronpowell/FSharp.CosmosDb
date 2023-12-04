@@ -7,6 +7,7 @@ open System
 module Cosmos =
     let private defaultConnectionOp () =
         { Options = None
+          FromIdentity = false
           FromConnectionString = false
           Endpoint = None
           AccessKey = None

@@ -50,6 +50,7 @@ module internal Caching =
 
 type ConnectionOperation =
     { Options: CosmosClientOptions option
+      FromIdentity: bool
       FromConnectionString: bool
       Endpoint: string option
       AccessKey: string option
