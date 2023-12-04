@@ -2,6 +2,7 @@ namespace FSharp.CosmosDb
 
 open FSharp.CosmosDb
 open Microsoft.Azure.Cosmos
+open Azure.Identity
 open System.Threading
 open System.Threading.Tasks
 open System.Collections.Concurrent
