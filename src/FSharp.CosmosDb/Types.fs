@@ -2,6 +2,7 @@ namespace FSharp.CosmosDb
 
 open FSharp.CosmosDb
 open Microsoft.Azure.Cosmos
+open Azure.Identity
 open System.Threading
 open System.Threading.Tasks
 open System.Collections.Concurrent
@@ -43,13 +44,28 @@ module internal Caching =
                 |> tryGetOption connStr
                 |> Option.defaultWith (fun () ->
                     let client = new CosmosClient(host, accessKey, clientOps)
-
                     clientCache.[connStr] <- client
+                    client)
+        }
+
+    let fromIdentity host' =
+        maybe {
+            let! host = host'
+
+            let key = "Default Identity Credential"
+
+            return
+                clientCache
+                |> tryGetOption key
+                |> Option.defaultWith (fun () ->
+                    let client = new CosmosClient(host, new DefaultAzureCredential())
+                    clientCache.[key] <- client
                     client)
         }
 
 type ConnectionOperation =
     { Options: CosmosClientOptions option
+      FromIdentity: bool
       FromConnectionString: bool
       Endpoint: string option
       AccessKey: string option
@@ -64,7 +80,9 @@ type ConnectionOperation =
             | None -> CosmosClientOptions()
 
         let client =
-            if this.FromConnectionString then
+            if this.FromIdentity then
+                Caching.fromIdentity this.Endpoint
+            elif this.FromConnectionString then
                 Caching.fromConnStr this.ConnectionString clientOps
             else
                 Caching.fromKey this.Endpoint this.AccessKey clientOps

@@ -7,6 +7,7 @@ open System
 module Cosmos =
     let private defaultConnectionOp () =
         { Options = None
+          FromIdentity = false
           FromConnectionString = false
           Endpoint = None
           AccessKey = None
@@ -27,6 +28,8 @@ module Cosmos =
 
     let host endpoint =
         { defaultConnectionOp () with Endpoint = Some endpoint }
+
+    let connectWithIdentity op = { op with FromIdentity = true }
 
     let connectWithOptions options accessKey op =
         { op with

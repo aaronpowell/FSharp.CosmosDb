@@ -19,6 +19,7 @@ nuget Microsoft.Build
 nuget Microsoft.Build.Framework
 nuget Microsoft.Build.Utilities.Core
 nuget FSharp.SystemTextJson
+nuget Azure.Identity
 
 // [ FAKE GROUP ]
 group Build
