@@ -29,6 +29,8 @@ module Cosmos =
     let host endpoint =
         { defaultConnectionOp () with Endpoint = Some endpoint }
 
+    let connectWithIdentity op = { op with FromIdentity = true }
+
     let connectWithOptions options accessKey op =
         { op with
             Options = Some options
