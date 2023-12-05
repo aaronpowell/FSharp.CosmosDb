@@ -51,16 +51,15 @@ module internal Caching =
     let fromIdentity host' =
         maybe {
             let! host = host'
-            let credential = DefaultAzureCredential()
 
-            let hash = sprintf "%s:%d" <|| (credential.ToString(), credential.GetHashCode())
+            let key = "Default Identity Credential"
 
             return
                 clientCache
-                |> tryGetOption hash
+                |> tryGetOption key
                 |> Option.defaultWith (fun () ->
-                    let client = new CosmosClient(host, credential)
-                    clientCache.[hash] <- client
+                    let client = new CosmosClient(host, new DefaultAzureCredential())
+                    clientCache.[key] <- client
                     client)
         }
 
@@ -81,7 +80,9 @@ type ConnectionOperation =
             | None -> CosmosClientOptions()
 
         let client =
-            if this.FromConnectionString then
+            if this.FromIdentity then
+                Caching.fromIdentity this.Endpoint
+            elif this.FromConnectionString then
                 Caching.fromConnStr this.ConnectionString clientOps
             else
                 Caching.fromKey this.Endpoint this.AccessKey clientOps
