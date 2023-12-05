@@ -44,8 +44,23 @@ module internal Caching =
                 |> tryGetOption connStr
                 |> Option.defaultWith (fun () ->
                     let client = new CosmosClient(host, accessKey, clientOps)
-
                     clientCache.[connStr] <- client
+                    client)
+        }
+
+    let fromIdentity host' =
+        maybe {
+            let! host = host'
+            let credential = DefaultAzureCredential()
+
+            let hash = sprintf "%s:%d" <|| (credential.ToString(), credential.GetHashCode())
+
+            return
+                clientCache
+                |> tryGetOption hash
+                |> Option.defaultWith (fun () ->
+                    let client = new CosmosClient(host, credential)
+                    clientCache.[hash] <- client
                     client)
         }
 
