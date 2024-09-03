@@ -107,7 +107,7 @@ jobs:
 
     steps:
       - name: Download package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
             name: release_id
       - run: echo "release_id=$(cat release.txt)" >> $GITHUB_ENV
@@ -128,7 +128,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: packages
           path: ${{ env.OUTPUT_PATH }}
@@ -151,7 +151,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: packages
           path: ${{ env.OUTPUT_PATH }}
